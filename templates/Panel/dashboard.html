@@ -1,0 +1,40 @@
+{% extends "Panel/base_panel.html" %}
+{% load panel_extras %}
+{% block title %}داشبورد{% endblock %}
+{% block content %}
+<header class="page-head">
+    <div><h1>داشبورد</h1><p class="sub">نمای کلی کاتالوگ محصولات</p></div>
+    {% if perms.Product.add_product %}<a class="btn btn-primary" href="{% url 'panel:product_create' %}"><svg class="ic"><use href="#i-plus"/></svg>محصول جدید</a>{% endif %}
+</header>
+
+<section class="stats">
+    <div class="stat cut"><b>{{ product_total|fa_num }}</b><span>محصول</span></div>
+    <div class="stat cut"><b>{{ category_total|fa_num }}</b><span>دسته‌بندی</span></div>
+    <div class="stat cut"><b>{{ subcategory_total|fa_num }}</b><span>زیردسته‌بندی</span></div>
+</section>
+
+<div class="dash-grid">
+    <section class="panel cut">
+        <h2 class="panel-title">تعداد محصول در هر دسته</h2>
+        {% if categories %}
+        <div class="cat-counts">
+            {% for c in categories %}
+            <div class="cat-count{% if not c.product_count %} is-zero{% endif %}">
+                <b>{{ c.product_count|fa_num }}</b>
+                <div><strong>{{ c.name }}</strong><small>{{ c.title }}</small></div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}<p class="empty">هنوز دسته‌بندی‌ای ثبت نشده است.</p>{% endif %}
+    </section>
+
+    <section>
+        <h2 class="panel-title">دسترسی سریع</h2>
+        <div class="quick">
+            {% if perms.Product.add_product %}<a class="quick-card cut" href="{% url 'panel:product_create' %}"><strong>افزودن محصول جدید</strong><span>نام، رویه، لاینر، چسب و عرض‌ها</span></a>{% endif %}
+            {% if perms.Product.change_product %}<a class="quick-card cut" href="{% url 'panel:product_list' %}"><strong>ویرایش محصولات</strong><span>جستجو، فیلتر و تغییر وضعیت</span></a>{% endif %}
+            {% if perms.Category.view_subcategory %}<a class="quick-card cut" href="{% url 'panel:subcategory_list' %}"><strong>زیردسته‌بندی‌ها</strong><span>مثلاً PVC، PET، PP و کاغذی زیر ونکال</span></a>{% endif %}
+        </div>
+    </section>
+</div>
+{% endblock %}

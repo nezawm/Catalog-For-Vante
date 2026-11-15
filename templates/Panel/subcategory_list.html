@@ -1,0 +1,27 @@
+{% extends "Panel/base_panel.html" %}
+{% load panel_extras %}
+{% block title %}زیردسته‌بندی‌ها{% endblock %}
+{% block content %}
+<header class="page-head">
+    <div><h1>زیردسته‌بندی‌ها</h1><p class="sub">{{ subcategories|length|fa_num }} زیردسته ثبت شده است</p></div>
+    {% if perms.Category.add_subcategory %}<a class="btn btn-primary" href="{% url 'panel:subcategory_create' %}"><svg class="ic"><use href="#i-plus"/></svg>زیردستهٔ جدید</a>{% endif %}
+</header>
+<div class="table-wrap cut">
+<table class="table">
+    <thead><tr><th>نام</th><th>دسته‌بندی اصلی</th><th>محصولات</th><th>وضعیت</th><th></th></tr></thead>
+    <tbody>
+    {% for s in subcategories %}
+        <tr>
+            <td class="strong">{{ s.name }}</td>
+            <td class="muted">{{ s.category.name }}</td>
+            <td>{{ s.product_count|fa_num }}</td>
+            <td>{% if s.is_active %}<span class="pill pill-on">فعال</span>{% else %}<span class="pill pill-off">غیرفعال</span>{% endif %}</td>
+            <td>{% if perms.Category.change_subcategory %}<a class="btn btn-sm" href="{% url 'panel:subcategory_update' s.pk %}">ویرایش</a>{% endif %}</td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="5" class="empty">هنوز زیردسته‌ای ثبت نشده است.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endblock %}

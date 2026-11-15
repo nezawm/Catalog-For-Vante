@@ -1,0 +1,1 @@
+{% load core_extras %}<a class="btn-back" href="{{ fallback|default:'/' }}" onclick="if (document.referrer && new URL(document.referrer).origin === location.origin && history.length > 1) { history.back(); return false; }"><span class="btn-back-arrow" aria-hidden="true"></span>{% t "back_prev" %}</a>

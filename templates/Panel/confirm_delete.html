@@ -1,0 +1,24 @@
+{% extends "Panel/base_panel.html" %}
+{% block title %}حذف {{ label }}{% endblock %}
+{% block content %}
+<div class="form-wrap">
+<a class="back" href="{{ cancel_url }}"><svg class="ic"><use href="#i-arrow"/></svg>بازگشت</a>
+<header class="page-head"><div><h1>حذف {{ label }}</h1><p class="sub">{{ object }}</p></div></header>
+<section class="panel cut">
+    {% if blocked_reason %}
+        <p class="flash flash-error">{{ blocked_reason }}</p>
+        <a class="btn btn-ghost" href="{{ cancel_url }}">بازگشت</a>
+    {% else %}
+        <p>آیا از حذف «{{ object }}» مطمئن هستید؟ این کار قابل بازگشت نیست.</p>
+        {% if extra_note %}<p class="muted">{{ extra_note }}</p>{% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="actions">
+                <button type="submit" class="btn btn-danger">بله، حذف شود</button>
+                <a class="btn btn-ghost" href="{{ cancel_url }}">انصراف</a>
+            </div>
+        </form>
+    {% endif %}
+</section>
+</div>
+{% endblock %}

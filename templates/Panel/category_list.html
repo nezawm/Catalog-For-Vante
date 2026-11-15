@@ -1,0 +1,29 @@
+{% extends "Panel/base_panel.html" %}
+{% load panel_extras %}
+{% block title %}دسته‌بندی‌ها{% endblock %}
+{% block content %}
+<header class="page-head">
+    <div><h1>دسته‌بندی‌ها</h1><p class="sub">{{ categories|length|fa_num }} دسته‌بندی ثبت شده است</p></div>
+    {% if perms.Category.add_category %}<a class="btn btn-primary" href="{% url 'panel:category_create' %}"><svg class="ic"><use href="#i-plus"/></svg>دسته‌بندی جدید</a>{% endif %}
+</header>
+<div class="table-wrap cut">
+<table class="table">
+    <thead><tr><th>ترتیب</th><th>نام لاتین</th><th>عنوان</th><th>زیردسته‌ها</th><th>محصولات</th><th>وضعیت</th><th></th></tr></thead>
+    <tbody>
+    {% for c in categories %}
+        <tr>
+            <td class="muted">{{ c.order|fa_num }}</td>
+            <td class="strong">{{ c.name }}</td>
+            <td>{{ c.title }}</td>
+            <td>{{ c.subcategory_count|fa_num }}</td>
+            <td>{{ c.product_count|fa_num }}</td>
+            <td>{% if c.is_active %}<span class="pill pill-on">فعال</span>{% else %}<span class="pill pill-off">غیرفعال</span>{% endif %}</td>
+            <td>{% if perms.Category.change_category %}<a class="btn btn-sm" href="{% url 'panel:category_update' c.pk %}">ویرایش</a>{% endif %}</td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="7" class="empty">هنوز دسته‌بندی‌ای ثبت نشده است.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% load static %}<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>ورود | پنل مدیریت ونته</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;800&display=swap">
+    <link rel="stylesheet" href="{% static 'Panel/css/panel.css' %}">
+</head>
+<body class="login-body">
+<main class="login-card cut">
+    <img src="{% static 'Core/img/vante-logo.svg' %}" alt="Vante" class="login-logo">
+    <h1>ورود به پنل مدیریت</h1>
+    <p class="sub">برای مدیریت کاتالوگ محصولات وارد شوید.</p>
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="flash flash-error">{% for e in form.non_field_errors %}{{ e }}{% endfor %}</div>{% endif %}
+        {% include "Panel/_field.html" with field=form.username %}
+        {% include "Panel/_field.html" with field=form.password %}
+        <input type="hidden" name="next" value="{{ next }}">
+        <button type="submit" class="btn btn-primary wide">ورود</button>
+    </form>
+</main>
+</body>
+</html>

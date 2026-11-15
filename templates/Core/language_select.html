@@ -1,0 +1,27 @@
+{% load static i18n core_extras %}<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Vante</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;800&display=swap">
+    <link rel="stylesheet" href="{% static 'Core/css/theme.css' %}">
+</head>
+<body>
+    <main class="lang-page">
+        <ul class="motion-text lang-motion" dir="rtl" lang="fa">
+            <li>{% motion_words "motion_line_1" "fa" %}</li>
+            <li>{% motion_words "motion_line_2" "fa" %}</li>
+        </ul>
+        {% include "Core/_logo_motion.html" %}
+        <div class="lang-hint">
+            <p class="lang-hint-fa" dir="rtl" lang="fa">زبان مورد نظر را انتخاب کنید</p>
+            <p class="lang-hint-en" lang="en">Choose your language</p>
+        </div>
+        <div class="lang-buttons">
+            <a class="lang-btn" lang="fa" href="{% language 'fa' %}{% url 'Core:home' %}{% endlanguage %}">فارسی</a>
+            <a class="lang-btn" lang="en" href="{% language 'en' %}{% url 'Core:home' %}{% endlanguage %}">English</a>
+        </div>
+    </main>
+</body>
+</html>

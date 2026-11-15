@@ -1,0 +1,58 @@
+{% extends "Panel/base_panel.html" %}
+{% load panel_extras %}
+{% block title %}محصولات{% endblock %}
+{% block content %}
+<header class="page-head">
+    <div><h1>محصولات</h1><p class="sub">{% if filtered %}{{ total|fa_num }} محصول پیدا شد{% else %}{{ total|fa_num }} محصول ثبت شده است{% endif %}</p></div>
+    {% if perms.Product.add_product %}<a class="btn btn-primary" href="{% url 'panel:product_create' %}"><svg class="ic"><use href="#i-plus"/></svg>محصول جدید</a>{% endif %}
+</header>
+
+<form class="panel cut filters" method="get">
+    <div class="field grow"><label for="q">جستجوی نام محصول</label><input id="q" class="input" type="search" name="q" value="{{ q }}" placeholder="مثلاً سفید براق"></div>
+    <div class="field">
+        <label for="category">دسته‌بندی</label>
+        <select id="category" name="category" class="input" onchange="this.form.submit()">
+            <option value="">همهٔ دسته‌ها</option>
+            {% for c in categories %}<option value="{{ c.pk }}"{% if c.pk|stringformat:"s" == category %} selected{% endif %}>{{ c.name }}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="field">
+        <label for="status">وضعیت</label>
+        <select id="status" name="status" class="input" onchange="this.form.submit()">
+            <option value="">همه</option>
+            <option value="active"{% if status == 'active' %} selected{% endif %}>فعال</option>
+            <option value="inactive"{% if status == 'inactive' %} selected{% endif %}>غیرفعال</option>
+        </select>
+    </div>
+</form>
+
+<div class="table-wrap cut">
+<table class="table">
+    <thead><tr><th>نام محصول</th><th>دسته‌بندی</th><th>رویه</th><th>عرض‌ها</th><th>وضعیت</th><th></th></tr></thead>
+    <tbody>
+    {% for p in products %}
+        <tr>
+            <td class="strong">{{ p.panel_title }}</td>
+            <td class="muted">{{ p.category.name }}{% if p.subcategory %} / {{ p.subcategory.name }}{% endif %}</td>
+            <td>{% if p.face_value %}{{ p.face_value|fa_num }} {{ p.get_face_unit_display }}{% else %}—{% endif %}</td>
+            <td>{% with w=p|widths_info %}{% if w.any %}<span class="{% if w.complete %}ok{% else %}warn{% endif %}">{{ w.filled|fa_num }} از {{ w.total|fa_num }} تکمیل</span>{% else %}—{% endif %}{% endwith %}</td>
+            <td>{% if p.is_active %}<span class="pill pill-on">فعال</span>{% else %}<span class="pill pill-off">غیرفعال</span>{% endif %}</td>
+            <td>{% if perms.Product.change_product %}<a class="btn btn-sm" href="{% url 'panel:product_update' p.pk %}">ویرایش</a>{% endif %}</td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="6" class="empty">محصولی پیدا نشد. عبارت جستجو یا فیلترها را تغییر دهید.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<div class="pager-row">
+    <span class="muted">نمایش {{ products|length|fa_num }} از {{ total|fa_num }} محصول</span>
+    {% if is_paginated %}
+    <nav class="pager" aria-label="صفحه‌بندی">
+        {% for n in paginator.page_range %}<a class="{% if n == page_obj.number %}on{% endif %}" href="?{% if query %}{{ query }}&amp;{% endif %}page={{ n }}">{{ n|fa_num }}</a>{% endfor %}
+        {% if page_obj.has_next %}<a href="?{% if query %}{{ query }}&amp;{% endif %}page={{ page_obj.next_page_number }}">بعدی</a>{% endif %}
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

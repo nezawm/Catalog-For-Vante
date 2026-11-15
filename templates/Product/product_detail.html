@@ -1,0 +1,41 @@
+{% extends "Core/base.html" %}
+{% load core_extras %}
+
+{% block title %}{{ product.display_name }}{% endblock %}
+
+{% block content %}
+<section class="hero hero--home">
+    <div class="hero-text">
+        <div class="hero-label">{{ product.category.name }}{% if product.subcategory %} / {{ product.subcategory.display_name }}{% endif %}</div>
+        <h1>{{ product.display_name }}</h1>
+        <p>{{ product.display_description }}</p>
+    </div>
+    <div class="hero-logo">{% include "Core/_logo_motion.html" with extra_class="vm--hero vm--loop" %}</div>
+</section>
+
+<table class="spec-table">
+    {% if product.display_face_material %}
+    <tr><th>{% t "face_material" %}</th><td>{{ product.display_face_material }}</td></tr>
+    {% endif %}
+    {% if product.face_value %}
+    <tr><th>{% t "face" %}</th><td>{{ product.face_value }} {% tv "unit" product.face_unit %}</td></tr>
+    {% endif %}
+    {% if product.liner_gsm %}
+    <tr><th>{% t "liner" %}</th><td>{{ product.liner_gsm }} {% t "liner_unit" %}</td></tr>
+    {% endif %}
+    {% if product.adhesive %}
+    <tr><th>{% t "adhesive" %}</th><td>{% tv "adhesive" product.adhesive %}</td></tr>
+    {% endif %}
+    {% if product.width_107 %}
+    <tr><th>{% t "width_107" %}</th><td>{{ product.width_107 }}</td></tr>
+    {% endif %}
+    {% if product.width_127 %}
+    <tr><th>{% t "width_127" %}</th><td>{{ product.width_127 }}</td></tr>
+    {% endif %}
+    {% if product.width_152 %}
+    <tr><th>{% t "width_152" %}</th><td>{{ product.width_152 }}</td></tr>
+    {% endif %}
+</table>
+
+<div class="back-row">{% include "Core/_back_button.html" with fallback=product.subcategory.get_absolute_url|default:product.category.get_absolute_url %}</div>
+{% endblock %}

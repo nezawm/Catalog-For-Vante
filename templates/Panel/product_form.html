@@ -1,0 +1,79 @@
+{% extends "Panel/base_panel.html" %}
+{% block title %}{% if object.pk %}ویرایش محصول{% else %}محصول جدید{% endif %}{% endblock %}
+{% block content %}
+<div class="form-wrap">
+<a class="back" href="{% url 'panel:product_list' %}"><svg class="ic"><use href="#i-arrow"/></svg>بازگشت به محصولات</a>
+<header class="page-head"><div><h1>{% if object.pk %}ویرایش محصول{% else %}محصول جدید{% endif %}</h1>{% if page_subtitle %}<p class="sub">{{ page_subtitle }}</p>{% endif %}</div></header>
+
+<form method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="flash flash-error">{% for e in form.non_field_errors %}{{ e }}{% endfor %}</div>{% endif %}
+
+    <section class="panel cut">
+        <h2 class="panel-title">اطلاعات اصلی</h2>
+        <div class="grid-3">
+            {% include "Panel/_field.html" with field=form.category %}
+            {% include "Panel/_field.html" with field=form.subcategory optional=True %}
+            {% include "Panel/_field.html" with field=form.name %}
+        </div>
+        <div class="field">
+            <label>اسلاگ آدرس</label>
+            {% if object.pk %}
+            <input class="input ltr" value="{{ object.slug }}" readonly>
+            <p class="hint">خودکار از نام ساخته می‌شود؛ آدرس: <bdi dir="ltr">{{ object.get_absolute_url }}</bdi></p>
+            {% else %}
+            <input class="input ltr" value="" placeholder="پس از ذخیره ساخته می‌شود" readonly>
+            <p class="hint">خودکار از نام ساخته می‌شود؛ آدرس: <bdi dir="ltr" data-slug-out data-url="{% url 'panel:slugify' %}" data-prefix="/fa/products/">—</bdi></p>
+            {% endif %}
+        </div>
+        {% include "Panel/_field.html" with field=form.description optional=True %}
+    </section>
+
+    <section class="panel cut">
+        <h2 class="panel-title">مشخصات</h2>
+        <div class="grid-4">
+            {% include "Panel/_field.html" with field=form.face_value optional=True %}
+            {% include "Panel/_field.html" with field=form.face_unit %}
+            {% include "Panel/_field.html" with field=form.liner_gsm optional=True %}
+            {% include "Panel/_field.html" with field=form.adhesive optional=True %}
+        </div>
+        {% include "Panel/_field.html" with field=form.face_material optional=True %}
+    </section>
+
+    <section class="panel cut panel-accent">
+        <h2 class="panel-title">ونجت — کد هر عرض</h2>
+        <p class="hint">کدِ مربوط به هر عرض را بنویسید؛ در جدول مشخصات صفحهٔ محصول نمایش داده می‌شود. عرض خالی نمایش داده نمی‌شود.</p>
+        <div class="grid-3">
+            {% include "Panel/_field.html" with field=form.width_107 %}
+            {% include "Panel/_field.html" with field=form.width_127 %}
+            {% include "Panel/_field.html" with field=form.width_152 %}
+        </div>
+    </section>
+
+    <section class="panel cut">
+        <h2 class="panel-title">نسخهٔ انگلیسی</h2>
+        <div class="grid-2">
+            {% include "Panel/_field.html" with field=form.name_en optional=True %}
+            {% include "Panel/_field.html" with field=form.face_material_en optional=True %}
+        </div>
+        {% include "Panel/_field.html" with field=form.description_en optional=True %}
+    </section>
+
+    <section class="panel cut">
+        <h2 class="panel-title">نمایش در سایت</h2>
+        <div class="inline-row">
+            <label class="check" for="{{ form.is_active.id_for_label }}">{{ form.is_active }}<span>{{ form.is_active.label }}</span></label>
+            <div class="field narrow"><label for="{{ form.order.id_for_label }}">{{ form.order.label }}</label>{{ form.order }}</div>
+        </div>
+        {% for error in form.order.errors %}<p class="err">{{ error }}</p>{% endfor %}
+    </section>
+
+    <div class="formbar cut">
+        <button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
+        <a class="link-light" href="{% url 'panel:product_list' %}">انصراف</a>
+        {% if object.pk and perms.Product.delete_product %}<a class="btn btn-outline-danger push" href="{% url 'panel:product_delete' object.pk %}">حذف محصول</a>{% endif %}
+    </div>
+</form>
+</div>
+{{ subcategory_map|json_script:"subcategory-map" }}
+{% endblock %}

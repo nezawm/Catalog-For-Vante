@@ -1,0 +1,21 @@
+{% extends "Core/base.html" %}
+{% load core_extras %}
+
+{% block title %}{% t "catalog_sections" %}{% endblock %}
+
+{% block content %}
+<h2 class="section-title">{% t "catalog_sections" %}</h2>
+<div class="card-grid card-grid--catalog">
+    {% for category in categories %}
+    <a class="card" href="{{ category.get_absolute_url }}">
+        <div class="card-name">{{ category.name }}</div>
+        <div class="card-title">{{ category.display_title }}</div>
+        <div class="card-desc">{{ category.display_description }}</div>
+    </a>
+    {% empty %}
+    <p>{% t "no_sections" %}</p>
+    {% endfor %}
+</div>
+
+<div class="back-row">{% url 'Core:home' as home_url %}{% include "Core/_back_button.html" with fallback=home_url %}</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "Core/base.html" %}
+{% load core_extras %}
+
+{% block title %}{{ category.display_title }} - {{ subcategory.display_name }}{% endblock %}
+
+{% block content %}
+<section class="hero hero--home">
+    <div class="hero-text">
+        <div class="hero-label">{{ category.name }}</div>
+        <h1>{{ subcategory.display_name }}</h1>
+        <p>{% if subcategory.display_description %}{{ subcategory.display_description }}{% else %}{{ category.display_title }}{% endif %}</p>
+    </div>
+    <div class="hero-logo">{% include "Core/_logo_motion.html" with extra_class="vm--hero vm--loop" %}</div>
+</section>
+
+<div class="card-grid">
+    {% for product in products %}
+    <a class="card" href="{{ product.get_absolute_url }}">
+        <div class="card-title">{{ product.display_name }}{% if product.face_value %} {{ product.face_value }} {% tv "unit" product.face_unit %}{% endif %}</div>
+        <div class="card-desc">{{ product.display_face_material }}</div>
+        {% if product.width_107 %}<div class="card-desc">{% t "width_107" %}: {{ product.width_107 }}</div>{% endif %}
+        {% if product.width_127 %}<div class="card-desc">{% t "width_127" %}: {{ product.width_127 }}</div>{% endif %}
+        {% if product.width_152 %}<div class="card-desc">{% t "width_152" %}: {{ product.width_152 }}</div>{% endif %}
+    </a>
+    {% empty %}
+    <p>{% t "no_products" %}</p>
+    {% endfor %}
+</div>
+
+<div class="back-row">{% include "Core/_back_button.html" with fallback=category.get_absolute_url %}</div>
+{% endblock %}

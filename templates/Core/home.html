@@ -1,0 +1,13 @@
+{% extends "Core/base.html" %}
+{% load core_extras %}
+
+{% block content %}
+<section class="hero hero--home">
+    <div class="hero-text">
+        <h1>{% t "hero_title" %}</h1>
+        <p>{% t "hero_subtitle" %}</p>
+        <a class="btn" href="{% url 'Category:list' %}">{% t "view_products" %}</a>
+    </div>
+    <div class="hero-logo">{% include "Core/_logo_motion.html" with extra_class="vm--hero vm--loop" %}</div>
+</section>
+{% endblock %}
