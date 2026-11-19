@@ -10,37 +10,22 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
-import os
 from pathlib import Path
-
-from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# بارگذاری متغیرهای محیطی از فایل .env (اگر وجود داشته باشد)
-load_dotenv(BASE_DIR / '.env')
-
-
-def env_bool(name, default=False):
-    return os.environ.get(name, str(default)).strip().lower() in ('1', 'true', 'yes', 'on')
-
-
-def env_list(name, default=''):
-    return [item.strip() for item in os.environ.get(name, default).split(',') if item.strip()]
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-change-me-in-env-file')
+SECRET_KEY = 'django-insecure-4@y)ky618gb^b%4xys-bk&d^osn@g$op^&csu^(aqp(s4dq6oz'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env_bool('DJANGO_DEBUG', True)
+DEBUG = True
 
-ALLOWED_HOSTS = env_list('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1')
-CSRF_TRUSTED_ORIGINS = env_list('DJANGO_CSRF_TRUSTED_ORIGINS')
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -68,6 +53,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'Core.middleware.VisitCounterMiddleware',
 ]
 
 ROOT_URLCONF = 'VanteCTL.urls'
@@ -99,7 +85,7 @@ WSGI_APPLICATION = 'VanteCTL.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / os.environ.get('DJANGO_DB_NAME', 'db.sqlite3'),
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -148,7 +134,19 @@ STATIC_URL = 'static/'
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-EMAIL_BACKEND = os.environ.get('DJANGO_EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+MAILERS = {
+    'default': {
+        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
+    },
+}
 
+STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
-STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# فایل‌های آپلودی (PDF کاتالوگ‌ها)؛ دانلود عمومی از مسیر /catalog/<lang>/ انجام می‌شود.
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+# آی‌پی در لاگ ورود: پشت nginx/پروکسی این را True کنید تا از X-Forwarded-For خوانده شود
+# (فقط وقتی پروکسی شما این هدر را خودش مقداردهی می‌کند، وگرنه قابل جعل است).
+LOG_TRUST_PROXY_HEADER = False

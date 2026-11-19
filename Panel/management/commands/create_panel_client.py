@@ -9,7 +9,7 @@ from Panel.groups import sync_client_group
 class Command(BaseCommand):
     help = (
         "کاربر کارفرما را می‌سازد: فقط به پنل /panel/ دسترسی دارد (staff نیست، پس وارد ادمین جنگو نمی‌شود) "
-        "و فقط مجوز مدیریت دسته‌بندی، زیردسته و محصول را دارد."
+        "و فقط مجوز مدیریت دسته‌بندی، زیردسته، محصول و فایل PDF کاتالوگ را دارد."
     )
 
     def add_arguments(self, parser):

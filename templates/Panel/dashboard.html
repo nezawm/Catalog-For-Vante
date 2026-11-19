@@ -13,6 +13,31 @@
     <div class="stat cut"><b>{{ subcategory_total|fa_num }}</b><span>زیردسته‌بندی</span></div>
 </section>
 
+{% if perms.Core.view_catalogfile %}
+<section class="panel cut panel-accent">
+    <h2 class="panel-title">کاتالوگ PDF سایت <span class="opt">— {{ catalog_downloads|fa_num }} دانلود</span></h2>
+    <div class="catalog-cards">
+        {% for row in catalogs %}
+        <div class="catalog-card">
+            <div class="catalog-card-head">
+                <strong>{{ row.label }}</strong>
+                {% if not row.obj %}<span class="pill pill-off">آپلود نشده</span>
+                {% elif row.obj.is_active %}<span class="pill pill-on">فعال</span>
+                {% else %}<span class="pill pill-off">غیرفعال</span>{% endif %}
+            </div>
+            {% if row.obj %}
+            <p class="muted">{{ row.obj.download_count|fa_num }} بار دانلود — آخرین تغییر {{ row.obj.updated_at|jdate }}</p>
+            {% else %}<p class="muted">هنوز فایلی برای این زبان آپلود نشده و دکمهٔ دانلود در سایت دیده نمی‌شود.</p>{% endif %}
+            {% if perms.Core.change_catalogfile or perms.Core.add_catalogfile %}
+            <a class="btn btn-sm" href="{% url 'panel:catalog_upload' row.code %}">{% if row.obj %}جایگزینی فایل{% else %}آپلود کاتالوگ{% endif %}</a>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    <p class="hint"><a href="{% url 'panel:catalog' %}">مدیریت کامل کاتالوگ‌ها ←</a></p>
+</section>
+{% endif %}
+
 <div class="dash-grid">
     <section class="panel cut">
         <h2 class="panel-title">تعداد محصول در هر دسته</h2>

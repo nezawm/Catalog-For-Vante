@@ -1,0 +1,26 @@
+{% extends "Panel/base_panel.html" %}
+{% load panel_extras %}
+{% block title %}آمار بازدید{% endblock %}
+{% block content %}
+<header class="page-head"><div><h1>آمار بازدید</h1><p class="sub">بازدید صفحات سایت (بدون ربات‌ها). «یکتا» یعنی هر مرورگر در هر روز یک‌بار.</p></div></header>
+<section class="stats stats-4">
+    <div class="stat cut"><b>{{ today.views|fa_num }}</b><span>بازدید امروز ({{ today.visitors|fa_num }} یکتا)</span></div>
+    <div class="stat cut"><b>{{ week.views|fa_num }}</b><span>۷ روز اخیر ({{ week.visitors|fa_num }} یکتا)</span></div>
+    <div class="stat cut"><b>{{ month.views|fa_num }}</b><span>۳۰ روز اخیر ({{ month.visitors|fa_num }} یکتا)</span></div>
+    <div class="stat cut"><b>{{ overall.views|fa_num }}</b><span>کل بازدید</span></div>
+</section>
+<section class="panel cut panel-accent">
+    <h2 class="panel-title">بازدید روزانه <span class="opt">— ۳۰ روز اخیر</span></h2>
+    {% include "Panel/_bars.html" with series=series label="نمودار بازدید روزانه" %}
+</section>
+<div class="grid-3">
+    <section class="panel cut"><h2 class="panel-title">به تفکیک زبان</h2>
+        <p>فارسی: <b>{{ fa_views|fa_num }}</b></p><p>English: <b>{{ en_views|fa_num }}</b></p></section>
+    <section class="panel cut"><h2 class="panel-title">اسکن QR</h2>
+        <p>کل: <b>{{ scan_total|fa_num }}</b></p><p>۳۰ روز اخیر: <b>{{ scan_month|fa_num }}</b></p>
+        <p class="hint"><a href="{% url 'panel:qr_list' %}">جزئیات هر QR ←</a></p></section>
+    <section class="panel cut"><h2 class="panel-title">دانلود PDF</h2>
+        <p>کل دانلود کاتالوگ: <b>{{ catalog_downloads|fa_num }}</b></p></section>
+</div>
+<p class="hint">شمارش از زمانی شروع شده که این قابلیت فعال شده است؛ بازدیدهای قبل از آن ثبت نشده‌اند.</p>
+{% endblock %}

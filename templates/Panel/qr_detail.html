@@ -1,0 +1,54 @@
+{% extends "Panel/base_panel.html" %}
+{% load panel_extras %}
+{% block title %}{{ qr.name }} | QR{% endblock %}
+{% block content %}
+<a class="back" href="{% url 'panel:qr_list' %}"><svg class="ic"><use href="#i-arrow"/></svg>بازگشت به کدهای QR</a>
+<header class="page-head">
+    <div><h1>{{ qr.name }}</h1><p class="sub">مقصد: {{ qr.get_target_display }} · {% if qr.is_active %}فعال{% else %}غیرفعال{% endif %}</p></div>
+    {% if perms.Core.change_qrcode %}<a class="btn btn-sm" href="{% url 'panel:qr_update' qr.pk %}">ویرایش</a>{% endif %}
+</header>
+
+<div class="qr-top">
+    <section class="panel cut qr-card">
+        <img class="qr-img" src="{% url 'panel:qr_image' qr.pk %}?fmt=png" alt="QR {{ qr.name }}" width="220" height="220">
+        <div class="actions">
+            <a class="btn btn-primary" href="{% url 'panel:qr_image' qr.pk %}?fmt=svg&download=1"><svg class="ic"><use href="#i-download"/></svg>SVG (چاپ)</a>
+            <a class="btn" href="{% url 'panel:qr_image' qr.pk %}?fmt=png&download=1">PNG</a>
+        </div>
+        <p class="hint">آدرس داخل QR:<br><bdi class="ltr" dir="ltr">{{ public_url }}</bdi></p>
+    </section>
+    <div>
+        <section class="stats stats-4">
+            <div class="stat cut"><b>{{ total|fa_num }}</b><span>کل اسکن</span></div>
+            <div class="stat cut"><b>{{ unique|fa_num }}</b><span>اسکن‌کنندهٔ یکتا</span></div>
+            <div class="stat cut"><b>{{ today|fa_num }}</b><span>امروز</span></div>
+            <div class="stat cut"><b>{{ week|fa_num }}</b><span>۷ روز اخیر</span></div>
+        </section>
+        <section class="panel cut">
+            <h2 class="panel-title">اسکن روزانه <span class="opt">— ۳۰ روز اخیر ({{ month|fa_num }} اسکن)</span></h2>
+            {% include "Panel/_bars.html" with series=series label="نمودار اسکن روزانه" %}
+        </section>
+    </div>
+</div>
+
+<div class="grid-2">
+    <section class="panel cut"><h2 class="panel-title">نوع دستگاه</h2>{% include "Panel/_breakdown.html" with rows=by_device %}</section>
+    <section class="panel cut"><h2 class="panel-title">مدل موبایل / تبلت</h2>{% include "Panel/_breakdown.html" with rows=by_model %}<p class="hint">مرورگر آیفون مدل دقیق را نمی‌دهد و فقط «iPhone» ثبت می‌شود.</p></section>
+    <section class="panel cut"><h2 class="panel-title">سیستم‌عامل</h2>{% include "Panel/_breakdown.html" with rows=by_os %}</section>
+    <section class="panel cut"><h2 class="panel-title">مرورگر</h2>{% include "Panel/_breakdown.html" with rows=by_browser %}</section>
+</div>
+
+<section class="panel cut">
+    <h2 class="panel-title">آخرین اسکن‌ها</h2>
+    <div class="table-wrap">
+    <table class="table">
+        <thead><tr><th>زمان</th><th>دستگاه</th><th>مدل</th><th>سیستم‌عامل</th><th>مرورگر</th></tr></thead>
+        <tbody>
+        {% for s in recent %}
+            <tr><td class="nowrap">{{ s.scanned_at|jdatetime }}</td><td>{% firstof device_labels|get_item:s.device_type "نامشخص" %}</td><td class="ltr">{{ s.device_model|default:"—" }}</td><td>{{ s.os|default:"—" }}</td><td>{{ s.browser|default:"—" }}</td></tr>
+        {% empty %}<tr><td colspan="5" class="empty">هنوز اسکنی ثبت نشده است.</td></tr>{% endfor %}
+        </tbody>
+    </table>
+    </div>
+</section>
+{% endblock %}

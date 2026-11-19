@@ -41,6 +41,16 @@
     </section>
 
     <section class="panel cut panel-accent">
+        <h2 class="panel-title">ونلایت (شبرنگ EGP / HIP)</h2>
+        <p class="hint">فقط برای محصولات ونلایت پر شود؛ فیلد خالی در سایت و PDF نمایش داده نمی‌شود. نوع شبرنگ (EGP یا HIP) را در نام محصول بنویسید.</p>
+        <div class="grid-3">
+            {% include "Panel/_field.html" with field=form.durability_years optional=True %}
+            {% include "Panel/_field.html" with field=form.colors optional=True %}
+            {% include "Panel/_field.html" with field=form.roll_size optional=True %}
+        </div>
+    </section>
+
+    <section class="panel cut panel-accent">
         <h2 class="panel-title">ونجت — کد هر عرض</h2>
         <p class="hint">کدِ مربوط به هر عرض را بنویسید؛ در جدول مشخصات صفحهٔ محصول نمایش داده می‌شود. عرض خالی نمایش داده نمی‌شود.</p>
         <div class="grid-3">
@@ -55,6 +65,7 @@
         <div class="grid-2">
             {% include "Panel/_field.html" with field=form.name_en optional=True %}
             {% include "Panel/_field.html" with field=form.face_material_en optional=True %}
+            {% include "Panel/_field.html" with field=form.colors_en optional=True %}
         </div>
         {% include "Panel/_field.html" with field=form.description_en optional=True %}
     </section>

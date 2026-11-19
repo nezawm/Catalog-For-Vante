@@ -8,3 +8,4 @@ class CoreConfig(AppConfig):
 
     def ready(self):
         from . import converters  # noqa: F401  (ثبت مبدل آدرس uslug)
+        from . import signals  # noqa: F401  (لاگ تلاش‌های ورود)

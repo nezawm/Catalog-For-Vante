@@ -1,3 +1,12 @@
+/* فونت وزیر (Medium) برای کل سایت؛ بازهٔ وزن ۱۰۰–۹۰۰ تا مرورگر بولد مصنوعی نسازد */
+@font-face {
+    font-family: "Vazir";
+    src: url("../fonts/Vazir-Medium.ttf") format("truetype");
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+
 /* ===== قالب صنعتی ونته: سفید + نارنجی با گوشه‌های بُرش‌خورده ===== */
 :root {
     --orange: #F04705;
@@ -29,7 +38,7 @@ body {
     background-size: 44px 44px, 44px 44px, 100% 100%;
     background-attachment: scroll, scroll, scroll;
     color: var(--ink);
-    font-family: "Vazirmatn", Tahoma, Arial, sans-serif;
+    font-family: "Vazir", Tahoma, Arial, sans-serif;
     line-height: 1.9;
 }
 
@@ -407,3 +416,67 @@ html[dir="rtl"] .motion-text li { animation-name: mt-pill-rtl; }
 .card-grid--catalog > .card { flex: 0 0 calc((100% - 40px) / 3); }
 @media (max-width: 800px) { .card-grid--catalog > .card { flex-basis: calc((100% - 20px) / 2); } }
 @media (max-width: 520px) { .card-grid--catalog > .card { flex-basis: 100%; } }
+
+/* دکمهٔ دانلود کاتالوگ (PDF) در هدر */
+.site-nav a.nav-download { background: var(--orange); color: #fff; }
+.site-nav a.nav-download::before { content: "\2193"; margin-inline-end: 8px; font-weight: 800; }
+.site-nav a.nav-download:hover { background: var(--ink); }
+
+/* ===== دکمهٔ منو (۳ خط) کنار لوگو ===== */
+.header-brand { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.site-menu { position: relative; }
+.menu-toggle {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; padding: 0; border: 0; cursor: pointer;
+    background: transparent; color: #000; position: relative; z-index: 61;
+    transition: color .2s;
+}
+.menu-toggle:hover, .site-menu.is-open .menu-toggle { color: var(--orange); }
+.menu-toggle:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+.menu-toggle-bars { display: flex; flex-direction: column; gap: 6px; width: 30px; }
+.menu-toggle-bars i { display: block; height: 5px; background: currentColor; border-radius: 5px; transition: transform .25s, opacity .2s; }
+.site-menu.is-open .menu-toggle-bars i:nth-child(1) { transform: translateY(11px) rotate(45deg); }
+.site-menu.is-open .menu-toggle-bars i:nth-child(2) { opacity: 0; }
+.site-menu.is-open .menu-toggle-bars i:nth-child(3) { transform: translateY(-11px) rotate(-45deg); }
+
+/* پس‌زمینهٔ تیره پشت منو */
+.menu-backdrop {
+    display: none; position: fixed; inset: 0; z-index: 55; background: rgba(28, 25, 23, .45);
+}
+.site-menu.is-open .menu-backdrop { display: block; }
+
+/* ستون منو: از زیر هدر تا پایین صفحه */
+.menu-list {
+    display: none; position: fixed; z-index: 60;
+    top: var(--header-h, 72px); bottom: 0; right: 0; left: auto;
+    width: min(260px, 80vw); flex-direction: column; gap: 10px; padding: 18px 14px;
+    background: var(--white); border-top: 4px solid var(--orange);
+    box-shadow: -10px 0 28px rgba(28, 25, 23, .25);
+    overflow-y: auto; direction: rtl;
+}
+html[dir="ltr"] .menu-list { direction: ltr; }
+.site-menu.is-open .menu-list { display: flex; animation: menu-in .22s ease-out; }
+@keyframes menu-in { from { transform: translateX(30px); opacity: 0; } to { transform: none; opacity: 1; } }
+.menu-list a {
+    display: block; padding: 12px 18px; text-align: center;
+    font-weight: 700; text-decoration: none; color: var(--ink); background: var(--paper);
+    clip-path: polygon(var(--cut-s) 0, 100% 0, calc(100% - var(--cut-s)) 100%, 0 100%);
+    transition: background .2s, color .2s;
+}
+.menu-list a:hover { background: var(--orange); color: #fff; }
+.menu-list a:last-child { background: var(--ink); color: #fff; }
+.menu-list a:last-child:hover { background: var(--orange); }
+
+@media (max-width: 640px) {
+    .site-header .container { gap: 6px; padding: 0 10px; }
+    .site-header .site-nav { gap: 3px; flex: 1 1 auto; overflow: hidden; }
+    .site-header .site-nav a { padding: 2px 8px; font-size: 12px; }
+    .site-nav a.nav-download::before { margin-inline-end: 4px; }
+    .header-logo img { height: 34px; }
+    .header-brand { gap: 2px; }
+    .menu-toggle { width: 38px; height: 38px; }
+    .menu-toggle-bars { width: 26px; gap: 5px; }
+    .menu-toggle-bars i { height: 4px; }
+    .site-menu.is-open .menu-toggle-bars i:nth-child(1) { transform: translateY(9px) rotate(45deg); }
+    .site-menu.is-open .menu-toggle-bars i:nth-child(3) { transform: translateY(-9px) rotate(-45deg); }
+}

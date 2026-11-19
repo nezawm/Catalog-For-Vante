@@ -1,4 +1,8 @@
-from django.test import TestCase
+import shutil
+import tempfile
+
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase, override_settings
 
 from Category.models import Category, Subcategory
 from Product.models import Product
@@ -73,3 +77,75 @@ class EnglishContentTests(TestCase):
     def test_missing_english_falls_back_to_persian(self):
         body = self.client.get(f"/en/products/{self.untranslated.slug}/").content.decode()
         self.assertIn("شفاف مات", body)
+
+
+PDF = b"%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF\n"
+
+
+class CatalogTestBase(TestCase):
+    """فایل‌های آپلودی تست داخل یک پوشهٔ موقت می‌روند، نه MEDIA_ROOT واقعی."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls._media = tempfile.mkdtemp()
+        cls._override = override_settings(MEDIA_ROOT=cls._media)
+        cls._override.enable()
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        cls._override.disable()
+        shutil.rmtree(cls._media, ignore_errors=True)
+
+    def make_catalog(self, lang, active=True):
+        from Core.models import CatalogFile
+
+        return CatalogFile.objects.create(
+            language=lang, is_active=active, file=SimpleUploadedFile("x.pdf", PDF, content_type="application/pdf")
+        )
+
+
+class CatalogDownloadTests(CatalogTestBase):
+    def test_each_language_downloads_its_own_file_and_is_counted(self):
+        fa, en = self.make_catalog("fa"), self.make_catalog("en")
+        response = self.client.get("/catalog/fa/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertIn("Vante-Catalog-fa.pdf", response["Content-Disposition"])
+        self.assertEqual(b"".join(response.streaming_content), PDF)
+        self.client.get("/catalog/en/")
+        self.client.get("/catalog/en/")
+        fa.refresh_from_db()
+        en.refresh_from_db()
+        self.assertEqual((fa.download_count, en.download_count), (1, 2))
+
+    def test_missing_or_inactive_or_unknown_language_is_404(self):
+        self.assertEqual(self.client.get("/catalog/fa/").status_code, 404)
+        self.make_catalog("fa", active=False)
+        self.assertEqual(self.client.get("/catalog/fa/").status_code, 404)
+        self.assertEqual(self.client.get("/catalog/de/").status_code, 404)
+
+    def test_head_request_is_not_counted(self):
+        catalog = self.make_catalog("fa")
+        self.client.head("/catalog/fa/")
+        catalog.refresh_from_db()
+        self.assertEqual(catalog.download_count, 0)
+
+
+class CatalogHeaderButtonTests(CatalogTestBase):
+    def test_button_in_header_matches_page_language(self):
+        self.make_catalog("fa")
+        self.make_catalog("en")
+        fa = self.client.get("/fa/").content.decode()
+        en = self.client.get("/en/").content.decode()
+        self.assertIn('href="/catalog/fa/"', fa)
+        self.assertNotIn('href="/catalog/en/"', fa)
+        self.assertIn('href="/catalog/en/"', en)
+        self.assertIn("Download catalog", en)
+
+    def test_button_hidden_when_no_active_file_for_that_language(self):
+        self.make_catalog("fa")
+        self.make_catalog("en", active=False)
+        self.assertNotIn("/catalog/", self.client.get("/en/").content.decode())
+        self.assertIn("/catalog/fa/", self.client.get("/fa/categories/").content.decode())

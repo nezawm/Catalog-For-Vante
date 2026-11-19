@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
     <title>{% block title %}پنل مدیریت{% endblock %} | ونته</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;800&display=swap">
     <link rel="stylesheet" href="{% static 'Panel/css/panel.css' %}">
 </head>
 <body>
@@ -19,6 +18,12 @@
         <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4"/><path d="M16 8l4 4-4 4M20 12H9"/></symbol>
         <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
         <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+        <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 11l5 5 5-5"/><path d="M5 20h14"/></symbol>
+        <symbol id="i-qr" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20h1"/></symbol>
+        <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V4M4 20h16"/><path d="M8 16v-4M12 16V8M16 16v-6"/></symbol>
+        <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></symbol>
+        <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 5a3.5 3.5 0 0 1 0 6.5M18 14.5c2.2.7 3.5 2.6 3.5 5.5"/></symbol>
+        <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></symbol>
     </defs>
 </svg>
 
@@ -39,8 +44,22 @@
             {% if perms.Category.view_subcategory %}
             <a href="{% url 'panel:subcategory_list' %}" class="{% if section == 'subcategories' %}active{% endif %}"><svg class="ic"><use href="#i-list"/></svg>زیردسته‌بندی‌ها</a>
             {% endif %}
+            {% if perms.Core.view_catalogfile %}
+            <a href="{% url 'panel:catalog' %}" class="{% if section == 'catalog' %}active{% endif %}"><svg class="ic"><use href="#i-download"/></svg>کاتالوگ PDF</a>
+            {% endif %}
+            {% if perms.Core.view_qrcode %}
+            <a href="{% url 'panel:qr_list' %}" class="{% if section == 'qr' %}active{% endif %}"><svg class="ic"><use href="#i-qr"/></svg>کد QR</a>
+            <a href="{% url 'panel:visits' %}" class="{% if section == 'visits' %}active{% endif %}"><svg class="ic"><use href="#i-chart"/></svg>آمار بازدید</a>
+            {% endif %}
+            {% if user.is_superuser %}
+            <a href="{% url 'panel:user_list' %}" class="{% if section == 'users' %}active{% endif %}"><svg class="ic"><use href="#i-users"/></svg>اعضا</a>
+            {% endif %}
+            {% if perms.Core.view_loginattempt %}
+            <a href="{% url 'panel:login_log' %}" class="{% if section == 'login_log' %}active{% endif %}"><svg class="ic"><use href="#i-shield"/></svg>لاگ ورود</a>
+            {% endif %}
         </nav>
         <div class="side-foot">
+            <a href="{% url 'panel:account' %}"><svg class="ic"><use href="#i-user"/></svg>حساب من ({{ user.username }})</a>
             <a href="{% url 'Core:home' %}" target="_blank" rel="noopener"><svg class="ic"><use href="#i-external"/></svg>مشاهدهٔ سایت</a>
             <form method="post" action="{% url 'panel:logout' %}">{% csrf_token %}<button type="submit"><svg class="ic"><use href="#i-logout"/></svg>خروج</button></form>
         </div>

@@ -1,0 +1,54 @@
+{% extends "Panel/base_panel.html" %}
+{% load panel_extras %}
+{% block title %}اعضا{% endblock %}
+{% block content %}
+<header class="page-head">
+    <div><h1>اعضا</h1><p class="sub">کاربرانی که می‌توانند وارد پنل شوند و سطح دسترسی هرکدام</p></div>
+    <a class="btn btn-primary" href="{% url 'panel:user_create' %}"><svg class="ic"><use href="#i-plus"/></svg>عضو جدید</a>
+</header>
+
+<section class="panel cut">
+    <h2 class="panel-title">سطح‌های دسترسی</h2>
+    <div class="role-grid">
+        {% for key, role in roles.items %}<div class="role-card"><strong>{{ role.0 }}</strong><span>{{ role.1 }}</span></div>{% endfor %}
+    </div>
+</section>
+
+<form class="filters" method="get">
+    <div class="field grow"><label for="q">جستجو</label><input class="input" id="q" name="q" value="{{ q }}" placeholder="نام کاربری، نام یا ایمیل"></div>
+    <div class="field" style="align-self:end"><button class="btn btn-primary" type="submit">جستجو</button>{% if q %} <a class="btn btn-ghost" href="{% url 'panel:user_list' %}">پاک کردن</a>{% endif %}</div>
+</form>
+
+<div class="table-wrap cut">
+<table class="table">
+    <thead><tr><th>نام کاربری</th><th>نام</th><th>سطح دسترسی</th><th>وضعیت</th><th>آخرین ورود</th><th></th></tr></thead>
+    <tbody>
+    {% for m in members %}
+        <tr>
+            <td class="strong ltr">{{ m.username }}{% if m.is_me %} <span class="pill pill-on">شما</span>{% endif %}</td>
+            <td>{{ m.get_full_name|default:"—" }}<br><small class="muted ltr">{{ m.email }}</small></td>
+            <td>{% if m.role_key == "senior" %}<span class="pill pill-role-senior">{{ m.role_title }}</span>{% elif m.role_key %}<span class="pill pill-off">{{ m.role_title }}</span>{% else %}<span class="pill pill-fail">{{ m.role_title }}</span>{% endif %}</td>
+            <td>{% if m.is_active %}<span class="pill pill-on">فعال</span>{% else %}<span class="pill pill-fail">غیرفعال</span>{% endif %}</td>
+            <td class="nowrap">{% if m.last_login %}{{ m.last_login|jdatetime }}{% else %}<span class="muted">هنوز وارد نشده</span>{% endif %}</td>
+            <td><div class="row-actions">
+                <a class="btn btn-sm" href="{% url 'panel:user_update' m.pk %}">ویرایش</a>
+                <a class="btn btn-sm" href="{% url 'panel:user_password' m.pk %}">تغییر گذرواژه</a>
+                {% if not m.is_me %}
+                <form class="inline-form" method="post" action="{% url 'panel:user_toggle' m.pk %}">{% csrf_token %}<button type="submit" class="btn btn-sm">{% if m.is_active %}غیرفعال کردن{% else %}فعال کردن{% endif %}</button></form>
+                <a class="btn btn-sm btn-ghost" href="{% url 'panel:user_delete' m.pk %}">حذف</a>
+                {% endif %}
+            </div></td>
+        </tr>
+    {% empty %}<tr><td colspan="6" class="empty">عضوی پیدا نشد.</td></tr>{% endfor %}
+    </tbody>
+</table>
+</div>
+{% if is_paginated %}
+<div class="pager-row"><span class="muted">{{ total|fa_num }} عضو</span>
+<nav class="pager" aria-label="صفحه‌بندی">
+    {% if page_obj.has_previous %}<a href="?{% if query %}{{ query }}&{% endif %}page={{ page_obj.previous_page_number }}">قبلی</a>{% endif %}
+    <a class="on">{{ page_obj.number|fa_num }} / {{ paginator.num_pages|fa_num }}</a>
+    {% if page_obj.has_next %}<a href="?{% if query %}{{ query }}&{% endif %}page={{ page_obj.next_page_number }}">بعدی</a>{% endif %}
+</nav></div>
+{% endif %}
+{% endblock %}

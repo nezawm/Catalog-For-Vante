@@ -1,0 +1,33 @@
+{% extends "Panel/base_panel.html" %}
+{% load panel_extras %}
+{% block title %}کد QR{% endblock %}
+{% block content %}
+<header class="page-head">
+    <div><h1>کد QR</h1><p class="sub">برای هر جا که QR می‌گذارید (بنر، کارت ویزیت، بروشور…) یک QR جدا بسازید تا تعداد اسکن هرکدام را ببینید</p></div>
+    {% if perms.Core.add_qrcode %}<a class="btn btn-primary" href="{% url 'panel:qr_create' %}"><svg class="ic"><use href="#i-plus"/></svg>QR جدید</a>{% endif %}
+</header>
+<div class="table-wrap cut">
+<table class="table">
+    <thead><tr><th>نام</th><th>مقصد</th><th>وضعیت</th><th>کل اسکن</th><th>۷ روز اخیر</th><th></th></tr></thead>
+    <tbody>
+    {% for qr in codes %}
+        <tr>
+            <td class="strong"><a href="{% url 'panel:qr_detail' qr.pk %}">{{ qr.name }}</a></td>
+            <td>{{ qr.get_target_display }}</td>
+            <td>{% if qr.is_active %}<span class="pill pill-on">فعال</span>{% else %}<span class="pill pill-off">غیرفعال</span>{% endif %}</td>
+            <td class="strong">{{ qr.total|fa_num }}</td>
+            <td>{{ qr.week|fa_num }}</td>
+            <td><div class="row-actions">
+                <a class="btn btn-sm" href="{% url 'panel:qr_detail' qr.pk %}">آمار و دانلود</a>
+                {% if perms.Core.change_qrcode %}<a class="btn btn-sm" href="{% url 'panel:qr_update' qr.pk %}">ویرایش</a>{% endif %}
+                {% if perms.Core.delete_qrcode %}<a class="btn btn-sm btn-ghost" href="{% url 'panel:qr_delete' qr.pk %}">حذف</a>{% endif %}
+            </div></td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="6" class="empty">هنوز QR ساخته نشده است.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+<p class="hint">QR به یک آدرس کوتاه اشاره می‌کند که اسکن را می‌شمارد و بعد به مقصد می‌رود؛ پس مقصد را حتی بعد از چاپ هم می‌توانید عوض کنید.</p>
+{% endblock %}

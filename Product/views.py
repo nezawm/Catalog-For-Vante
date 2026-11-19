@@ -13,4 +13,4 @@ class ProductDetailView(SlugDetailMixin, DetailView):
     context_object_name = "product"
 
     def get_queryset(self):
-        return Product.objects.filter(is_active=True).select_related("category", "subcategory")
+        return Product.objects.filter(is_active=True).select_related("category", "subcategory").prefetch_related("vanlite_items")

@@ -1,8 +1,12 @@
 from django import forms
-from django.contrib.auth.forms import AuthenticationForm, UsernameField
+from django.contrib.auth import get_user_model, password_validation
+from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm, UsernameField
 
 from Category.models import Category, Subcategory
+from Core.models import CatalogFile, QRCode
 from Product.models import Product
+
+from .groups import ROLES, user_role
 
 
 class StyledFormMixin:
@@ -37,6 +41,7 @@ class ProductForm(StyledFormMixin, forms.ModelForm):
             "name_en", "description_en", "face_material_en",
             "face_material", "face_value", "face_unit", "liner_gsm", "adhesive",
             "width_107", "width_127", "width_152",
+            "durability_years", "colors", "colors_en", "roll_size",
             "is_active", "order",
         )
         labels = {
@@ -48,6 +53,8 @@ class ProductForm(StyledFormMixin, forms.ModelForm):
             "name_en": "نام محصول (English)",
             "description_en": "توضیحات (English)",
             "face_material_en": "جنس رویه (English)",
+            "colors_en": "رنگ‌ها (English)",
+            "roll_size": "ابعاد رول (متر)",
         }
         widgets = {
             "description": forms.Textarea(attrs={"rows": 4}),
@@ -57,6 +64,10 @@ class ProductForm(StyledFormMixin, forms.ModelForm):
             "liner_gsm": forms.NumberInput(attrs={"placeholder": "مثلاً ۱۴۰", "min": 0}),
             "face_value": forms.NumberInput(attrs={"min": 0}),
             "order": forms.NumberInput(attrs={"min": 0}),
+            "durability_years": forms.NumberInput(attrs={"min": 0, "placeholder": "مثلاً ۷"}),
+            "colors": forms.TextInput(attrs={"placeholder": "سفید - قرمز - سبز"}),
+            "colors_en": forms.TextInput(attrs={"dir": "ltr", "placeholder": "White - Red - Green"}),
+            "roll_size": forms.TextInput(attrs={"dir": "ltr", "placeholder": "1.22 × 45.7"}),
             "width_107": forms.TextInput(attrs={"dir": "ltr"}),
             "width_127": forms.TextInput(attrs={"dir": "ltr"}),
             "width_152": forms.TextInput(attrs={"dir": "ltr"}),
@@ -111,3 +122,121 @@ class SubcategoryForm(StyledFormMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["category"].label_from_instance = lambda c: f"{c.name} — {c.title}"
         self.fields["category"].empty_label = "انتخاب کنید"
+
+
+class CatalogForm(StyledFormMixin, forms.ModelForm):
+    class Meta:
+        model = CatalogFile
+        fields = ("file", "is_active")
+        labels = {
+            "file": "فایل PDF",
+            "is_active": "کاتالوگ فعال است و دکمهٔ دانلود در سایت نمایش داده شود",
+        }
+        widgets = {"file": forms.FileInput(attrs={"accept": "application/pdf,.pdf"})}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # در ویرایش، اگر فایل جدیدی انتخاب نشود همان فایل قبلی می‌ماند.
+        self.fields["file"].required = not bool(self.instance and self.instance.file)
+
+
+class QRCodeForm(StyledFormMixin, forms.ModelForm):
+    class Meta:
+        model = QRCode
+        fields = ("name", "target", "is_active")
+        labels = {"is_active": "QR فعال است (اگر غیرفعال شود اسکن‌ها به صفحهٔ «پیدا نشد» می‌روند)"}
+        widgets = {"name": forms.TextInput(attrs={"placeholder": "مثلاً بنر نمایشگاه"})}
+
+
+class PanelSetPasswordForm(StyledFormMixin, SetPasswordForm):
+    """تعیین رمز جدید برای یک عضو (توسط مدیر ارشد)؛ رمز فعلی لازم نیست."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["new_password1"].label = "گذرواژهٔ جدید"
+        self.fields["new_password2"].label = "تکرار گذرواژهٔ جدید"
+
+
+class UserForm(StyledFormMixin, forms.ModelForm):
+    """ساخت/ویرایش عضو. در ساخت، گذرواژه هم گرفته می‌شود."""
+
+    role = forms.ChoiceField(
+        label="سطح دسترسی",
+        choices=[(key, title) for key, (title, _) in ROLES.items()],
+        widget=forms.RadioSelect,
+    )
+    password1 = forms.CharField(label="گذرواژه", strip=False, required=False,
+                                widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}))
+    password2 = forms.CharField(label="تکرار گذرواژه", strip=False, required=False,
+                                widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}))
+
+    class Meta:
+        model = get_user_model()
+        fields = ("username", "first_name", "last_name", "email", "is_active")
+        labels = {
+            "username": "نام کاربری",
+            "first_name": "نام",
+            "last_name": "نام خانوادگی",
+            "email": "ایمیل",
+            "is_active": "حساب فعال است (اگر غیرفعال شود نمی‌تواند وارد شود)",
+        }
+        widgets = {"username": forms.TextInput(attrs={"dir": "ltr", "autocomplete": "off"}),
+                   "email": forms.EmailInput(attrs={"dir": "ltr"})}
+
+    def __init__(self, *args, editor=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.editor = editor
+        self.creating = self.instance.pk is None
+        for name in ("first_name", "last_name", "email"):
+            self.fields[name].required = False
+        if self.creating:
+            self.fields["password1"].required = True
+            self.fields["password2"].required = True
+            self.fields["is_active"].initial = True
+            self.fields["role"].initial = "viewer"
+        else:
+            self.fields["role"].initial = user_role(self.instance)
+            del self.fields["password1"], self.fields["password2"]
+        self.is_self = bool(editor and self.instance.pk == editor.pk)
+        if self.is_self:  # مدیر نمی‌تواند خودش را غیرفعال یا تنزل دهد
+            self.fields["role"].disabled = True
+            self.fields["is_active"].disabled = True
+
+    def clean(self):
+        data = super().clean()
+        if self.creating:
+            p1, p2 = data.get("password1"), data.get("password2")
+            if p1 and p2 and p1 != p2:
+                self.add_error("password2", "دو گذرواژه یکسان نیستند.")
+            elif p1:
+                temp = get_user_model()(username=data.get("username", ""), email=data.get("email", ""),
+                                        first_name=data.get("first_name", ""), last_name=data.get("last_name", ""))
+                try:
+                    password_validation.validate_password(p1, temp)
+                except forms.ValidationError as e:
+                    self.add_error("password1", e)
+        elif not self.is_self and self.instance.is_superuser:
+            # آخرین مدیر ارشدِ فعال نباید تنزل یا غیرفعال شود
+            others = get_user_model().objects.filter(is_superuser=True, is_active=True).exclude(pk=self.instance.pk)
+            if not others.exists() and (data.get("role") != "senior" or not data.get("is_active")):
+                raise forms.ValidationError("این آخرین مدیر ارشد فعال است و نمی‌شود تنزل یا غیرفعالش کرد.")
+        return data
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        if self.creating:
+            user.set_password(self.cleaned_data["password1"])
+        user.save()
+        from .groups import set_user_role
+
+        if not self.is_self:
+            set_user_role(user, self.cleaned_data["role"])
+        return user
+
+
+class ProfileForm(StyledFormMixin, forms.ModelForm):
+    class Meta:
+        model = get_user_model()
+        fields = ("first_name", "last_name", "email")
+        labels = {"first_name": "نام", "last_name": "نام خانوادگی", "email": "ایمیل"}
+        widgets = {"email": forms.EmailInput(attrs={"dir": "ltr"})}

@@ -1,8 +1,12 @@
 from django.contrib.admin.views.decorators import staff_member_required
-from django.http import Http404, HttpResponsePermanentRedirect, JsonResponse
+from django.http import FileResponse, Http404, HttpResponsePermanentRedirect, HttpResponseRedirect, JsonResponse
+from django.shortcuts import get_object_or_404
+from django.views.decorators.http import require_safe
 from django.views.generic import TemplateView
 import re
 
+from .models import CatalogFile, QRCode, QRScan
+from .useragent import is_bot, parse_user_agent, visitor_hash
 from .slugs import make_slug
 
 
@@ -53,3 +57,40 @@ class LanguageSelectView(TemplateView):
 def admin_slugify(request):
     """پیش‌نمایش زندهٔ اسلاگ انگلیسی برای ادمین (فقط کاربران staff)."""
     return JsonResponse({"slug": make_slug(request.GET.get("text", "")[:200], fallback="")})
+
+
+@require_safe
+def catalog_download(request, lang):
+    """دانلود PDF کاتالوگِ همان زبان؛ فقط اگر فایل آپلود شده و فعال باشد. هر دانلود شمرده می‌شود."""
+    catalog = (
+        CatalogFile.objects.filter(language=lang, is_active=True).exclude(file="").first()
+    )
+    if catalog is None:
+        raise Http404
+    try:
+        handle = catalog.file.storage.open(catalog.file.name, "rb")
+    except (FileNotFoundError, ValueError):
+        raise Http404
+    if request.method == "GET":
+        catalog.record_download()
+    return FileResponse(handle, as_attachment=True, filename=catalog.download_filename, content_type="application/pdf")
+
+
+@require_safe
+def qr_scan(request, code):
+    """آدرس کوتاهِ داخل QR: اسکن را ثبت می‌کند (ربات‌ها و پیش‌نمایش‌های پیام‌رسان‌ها نه) و به مقصد می‌رود."""
+    qr = get_object_or_404(QRCode, code=code, is_active=True)
+    ua = request.META.get("HTTP_USER_AGENT", "")
+    if request.method == "GET" and not is_bot(ua):
+        info = parse_user_agent(ua)
+        QRScan.objects.create(
+            qr=qr,
+            device_type=info["device_type"],
+            device_model=info["device_model"],
+            os=info["os"],
+            browser=info["browser"],
+            visitor=visitor_hash(request),
+        )
+    response = HttpResponseRedirect(qr.target)
+    response["Cache-Control"] = "no-store"  # تا هر اسکن به سرور برسد
+    return response

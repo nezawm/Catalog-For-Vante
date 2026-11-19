@@ -24,4 +24,27 @@ urlpatterns = [
     path("subcategories/new/", views.SubcategoryCreateView.as_view(), name="subcategory_create"),
     path("subcategories/<int:pk>/", views.SubcategoryUpdateView.as_view(), name="subcategory_update"),
     path("subcategories/<int:pk>/delete/", views.SubcategoryDeleteView.as_view(), name="subcategory_delete"),
+
+    path("catalog/", views.CatalogListView.as_view(), name="catalog"),
+    path("catalog/<slug:lang>/", views.CatalogUploadView.as_view(), name="catalog_upload"),
+    path("catalog/<slug:lang>/preview/", views.CatalogPreviewView.as_view(), name="catalog_preview"),
+    path("catalog/<slug:lang>/toggle/", views.CatalogToggleView.as_view(), name="catalog_toggle"),
+    path("catalog/<slug:lang>/delete/", views.CatalogDeleteView.as_view(), name="catalog_delete"),
+
+    path("qr/", views.QRListView.as_view(), name="qr_list"),
+    path("qr/new/", views.QRCreateView.as_view(), name="qr_create"),
+    path("qr/<int:pk>/", views.QRDetailView.as_view(), name="qr_detail"),
+    path("qr/<int:pk>/edit/", views.QRUpdateView.as_view(), name="qr_update"),
+    path("qr/<int:pk>/delete/", views.QRDeleteView.as_view(), name="qr_delete"),
+    path("qr/<int:pk>/image/", views.QRImageView.as_view(), name="qr_image"),
+    path("visits/", views.VisitStatsView.as_view(), name="visits"),
+    path("login-log/", views.LoginLogView.as_view(), name="login_log"),
+
+    path("users/", views.UserListView.as_view(), name="user_list"),
+    path("users/new/", views.UserCreateView.as_view(), name="user_create"),
+    path("users/<int:pk>/", views.UserUpdateView.as_view(), name="user_update"),
+    path("users/<int:pk>/password/", views.UserPasswordView.as_view(), name="user_password"),
+    path("users/<int:pk>/toggle/", views.UserToggleView.as_view(), name="user_toggle"),
+    path("users/<int:pk>/delete/", views.UserDeleteView.as_view(), name="user_delete"),
+    path("account/", views.AccountView.as_view(), name="account"),
 ]

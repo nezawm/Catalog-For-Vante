@@ -4,7 +4,6 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}{% t "site_title" %}{% endblock %}</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;800&display=swap">
     <link rel="stylesheet" href="{% static 'Core/css/theme.css' %}">
     {% block extra_head %}{% endblock %}
 </head>
@@ -13,9 +12,23 @@
         <div class="container">
             <nav class="site-nav" aria-label="Main">
                 <a href="{% url 'Core:home' %}">{% t "nav_home" %}</a>
+                {% catalog_file as catalog %}
+                {% if catalog %}<a class="nav-download" href="{% url 'catalog_download' catalog.language %}" download>{% t "download_catalog" %}</a>{% endif %}
                 <a class="lang-switch" href="{% other_language_url %}">{% t "switch_language" %}</a>
             </nav>
-            <a class="header-logo" href="{% url 'Core:home' %}" aria-label="Vante"><img src="{% static 'Core/img/vante-logo.svg' %}" alt="Vante"></a>
+            <div class="header-brand">
+                <div class="site-menu">
+                    <button type="button" class="menu-toggle" aria-label="{% t 'menu' %}" aria-expanded="false" aria-controls="site-menu-list">
+                        <span class="menu-toggle-bars" aria-hidden="true"><i></i><i></i><i></i></span>
+                    </button>
+                    <div class="menu-backdrop"></div>
+                    <div class="menu-list" id="site-menu-list">
+                        <a href="{% url 'Category:list' %}">{% t "menu_catalog" %}</a>
+                        <a href="{% url 'panel:login' %}">{% t "nav_panel" %}</a>
+                    </div>
+                </div>
+                <a class="header-logo" href="{% url 'Core:home' %}" aria-label="Vante"><img src="{% static 'Core/img/vante-logo.svg' %}" alt="Vante"></a>
+            </div>
         </div>
     </header>
 
@@ -26,5 +39,6 @@
     <footer class="site-footer">
         <div class="container">{% block footer %}{% t "footer" %}{% endblock %}</div>
     </footer>
+    <script src="{% static 'Core/js/menu.js' %}"></script>
 </body>
 </html>

@@ -4,6 +4,7 @@ from django.db import models
 # Create your models here.
 from django.db import models
 from django.urls import reverse
+from django.utils.translation import get_language
 
 from Category.models import Category
 from Core.models import BaseModel
@@ -57,6 +58,17 @@ class Product(BaseModel):
     width_152 = models.CharField(
         "عرض 1/52 متر", max_length=50, blank=True, null=True
     )
+    # ونلایت (شبرنگ EGP / HIP): مشخصات مخصوص این گروه؛ خالی بماند نمایش داده نمی‌شود.
+    durability_years = models.PositiveSmallIntegerField(
+        "دوام (سال)", null=True, blank=True, help_text="مثلاً ۷ برای EGP یا ۱۰ برای HIP"
+    )
+    colors = models.CharField(
+        "رنگ‌ها", max_length=200, blank=True, help_text="مثلاً: سفید - قرمز - سبز"
+    )
+    colors_en = models.CharField("رنگ‌ها (انگلیسی)", max_length=200, blank=True)
+    roll_size = models.CharField(
+        "ابعاد رول (متر)", max_length=40, blank=True, help_text="مثلاً: 1.22 × 45.7"
+    )
     description = models.TextField("توضیحات", blank=True)
     description_en = models.TextField("توضیحات (انگلیسی)", blank=True)
     order = models.PositiveSmallIntegerField("ترتیب نمایش", default=0)
@@ -93,5 +105,61 @@ class Product(BaseModel):
     def display_face_material(self):
         return self.localized("face_material")
 
+    @property
+    def display_colors(self):
+        return self.localized("colors")
+
     def get_absolute_url(self):
         return reverse("Product:detail", kwargs={"slug": self.slug})
+
+
+class Vanlite(BaseModel):
+    """ونلایت (شبرنگ EGP / HIP): بخش کاملاً جدا از مشخصات محصول، با دو بخش فارسی و انگلیسی.
+    هر ردیف یک نوع/کد از یک محصول است؛ مقدار انگلیسیِ خالی در سایت با فارسی جایگزین می‌شود."""
+
+    product = models.ForeignKey(
+        Product, verbose_name="محصول", on_delete=models.CASCADE, related_name="vanlite_items"
+    )
+    # --- فارسی
+    name = models.CharField("نام محصول", max_length=150)
+    type = models.CharField("نوع", max_length=60, blank=True, help_text="مثلاً EGP یا HIP")
+    roll_size = models.CharField("رول سایز", max_length=40, blank=True, help_text="مثلاً: 1.22 × 45.7")
+    durability_years = models.PositiveSmallIntegerField("دوام (سال)", null=True, blank=True)
+    product_code = models.CharField("کد محصول", max_length=60, blank=True)
+    # --- English
+    name_en = models.CharField("Product name", max_length=150, blank=True)
+    type_en = models.CharField("Type", max_length=60, blank=True)
+    roll_size_en = models.CharField("Roll size", max_length=40, blank=True)
+    durability_years_en = models.PositiveSmallIntegerField("Durability (years)", null=True, blank=True)
+    product_code_en = models.CharField("Product code", max_length=60, blank=True)
+    order = models.PositiveSmallIntegerField("ترتیب نمایش", default=0)
+
+    class Meta(BaseModel.Meta):
+        verbose_name = "ونلایت"
+        verbose_name_plural = "ونلایت (Vanlite)"
+        ordering = ["order", "name"]
+
+    def __str__(self):
+        return f"{self.name} {self.product_code}".strip()
+
+    @property
+    def display_name(self):
+        return self.localized("name")
+
+    @property
+    def display_type(self):
+        return self.localized("type")
+
+    @property
+    def display_roll_size(self):
+        return self.localized("roll_size")
+
+    @property
+    def display_product_code(self):
+        return self.localized("product_code")
+
+    @property
+    def display_durability_years(self):
+        if (get_language() or "fa")[:2] == "en" and self.durability_years_en:
+            return self.durability_years_en
+        return self.durability_years

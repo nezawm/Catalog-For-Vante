@@ -15,16 +15,20 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+from django.conf import settings
 from django.conf.urls.i18n import i18n_patterns
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
-from Core.views import LanguageSelectView, admin_slugify
+from Core.views import LanguageSelectView, admin_slugify, catalog_download, qr_scan
 
 urlpatterns = [
     path("admin/slugify/", admin_slugify, name="admin_slugify"),
     path("admin/", admin.site.urls),
     path("panel/", include("Panel.urls")),
+    path("catalog/<slug:lang>/", catalog_download, name="catalog_download"),
+    path("q/<slug:code>/", qr_scan, name="qr_scan"),
     path("", LanguageSelectView.as_view(), name="language_select"),
 ]
 
@@ -33,3 +37,6 @@ urlpatterns += i18n_patterns(
     path("products/", include("Product.urls")),
     path("", include("Core.urls")),
 )
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

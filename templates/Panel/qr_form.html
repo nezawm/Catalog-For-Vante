@@ -1,0 +1,22 @@
+{% extends "Panel/base_panel.html" %}
+{% block title %}{% if object.pk %}ویرایش QR{% else %}QR جدید{% endif %}{% endblock %}
+{% block content %}
+<div class="form-wrap">
+<a class="back" href="{% url 'panel:qr_list' %}"><svg class="ic"><use href="#i-arrow"/></svg>بازگشت به کدهای QR</a>
+<header class="page-head"><div><h1>{% if object.pk %}ویرایش QR{% else %}QR جدید{% endif %}</h1></div></header>
+<form method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="flash flash-error">{% for e in form.non_field_errors %}{{ e }}{% endfor %}</div>{% endif %}
+    <section class="panel cut">
+        <h2 class="panel-title">مشخصات</h2>
+        {% include "Panel/_field.html" with field=form.name hint="فقط برای خودتان است تا بدانید آمار مربوط به کدام QR است." %}
+        {% include "Panel/_field.html" with field=form.target hint="کاربر بعد از اسکن به این صفحه می‌رود." %}
+        <label class="check" for="{{ form.is_active.id_for_label }}">{{ form.is_active }}<span>{{ form.is_active.label }}</span></label>
+    </section>
+    <div class="formbar cut">
+        <button type="submit" class="btn btn-primary">ذخیره</button>
+        <a class="link-light" href="{% url 'panel:qr_list' %}">انصراف</a>
+    </div>
+</form>
+</div>
+{% endblock %}

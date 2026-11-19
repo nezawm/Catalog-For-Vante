@@ -1,0 +1,6 @@
+{% load panel_extras %}
+{# نمودار میله‌ای روزانه: series = [{date, count, percent}] #}
+<div class="bars" role="img" aria-label="{{ label }}">
+    {% for d in series %}<div class="bar" title="{{ d.date|jdate }} — {{ d.count|fa_num }}"><i style="height: {% if d.count %}{{ d.percent }}{% else %}2{% endif %}%"></i></div>{% endfor %}
+</div>
+<div class="bars-axis"><span>{{ series.0.date|jdate }}</span><span>امروز</span></div>

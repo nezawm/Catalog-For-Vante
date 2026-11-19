@@ -1,0 +1,7 @@
+{% load panel_extras %}
+{# rows = [{label, count, percent}] #}
+{% if rows %}
+<div class="brk">
+    {% for r in rows %}<div class="brk-row"><span class="brk-label">{{ r.label }}</span><span class="brk-bar"><i style="width: {{ r.percent }}%"></i></span><b>{{ r.count|fa_num }}</b></div>{% endfor %}
+</div>
+{% else %}<p class="muted">هنوز دیتایی ثبت نشده است.</p>{% endif %}

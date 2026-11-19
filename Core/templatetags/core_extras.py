@@ -3,6 +3,7 @@ from django.urls import translate_url
 from django.utils.html import format_html_join
 from django.utils.translation import get_language
 
+from Core.models import CatalogFile
 from Core.translations import DEFAULT_LANGUAGE, TRANSLATIONS
 
 register = template.Library()
@@ -40,3 +41,9 @@ def motion_words(key, lang=None):
     text = TRANSLATIONS[lang][key] if lang in TRANSLATIONS else t(key)
     words = text.split()
     return format_html_join("", '<span class="mt-word" style="--w:{}">{}</span> ', enumerate(words))
+
+
+@register.simple_tag
+def catalog_file():
+    """کاتالوگ PDFِ فعالِ زبان فعلی (یا None): {% catalog_file as catalog %}"""
+    return CatalogFile.objects.filter(language=_lang(), is_active=True).exclude(file="").first()

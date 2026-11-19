@@ -37,5 +37,27 @@
     {% endif %}
 </table>
 
+{% with items=product.vanlite_items.all %}
+{% if items %}
+<h2 class="section-title">{% t "vanlite" %}</h2>
+<div class="table-scroll" style="overflow-x:auto">
+<table class="spec-table">
+    <thead><tr><th>{% t "vl_name" %}</th><th>{% t "vl_type" %}</th><th>{% t "roll_size" %}</th><th>{% t "durability" %}</th><th>{% t "vl_code" %}</th></tr></thead>
+    <tbody>
+    {% for v in items %}{% if v.is_active %}
+    <tr>
+        <td>{{ v.display_name }}</td>
+        <td>{{ v.display_type|default:"—" }}</td>
+        <td><bdi dir="ltr">{{ v.display_roll_size|default:"—" }}</bdi></td>
+        <td>{% if v.display_durability_years %}{{ v.display_durability_years }} {% t "durability_unit" %}{% else %}—{% endif %}</td>
+        <td><bdi dir="ltr">{{ v.display_product_code|default:"—" }}</bdi></td>
+    </tr>
+    {% endif %}{% endfor %}
+    </tbody>
+</table>
+</div>
+{% endif %}
+{% endwith %}
+
 <div class="back-row">{% include "Core/_back_button.html" with fallback=product.subcategory.get_absolute_url|default:product.category.get_absolute_url %}</div>
 {% endblock %}

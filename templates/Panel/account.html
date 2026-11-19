@@ -1,0 +1,36 @@
+{% extends "Panel/base_panel.html" %}
+{% load panel_extras %}
+{% block title %}حساب من{% endblock %}
+{% block content %}
+<div class="form-wrap">
+<header class="page-head"><div><h1>حساب من</h1><p class="sub"><span class="ltr" dir="ltr">{{ user.username }}</span> · سطح دسترسی: {{ role_title }}{% if user.last_login %} · آخرین ورود: {{ user.last_login|jdatetime }}{% endif %}</p></div></header>
+
+<form method="post" novalidate>
+    {% csrf_token %}<input type="hidden" name="which" value="profile">
+    {% if profile_form.non_field_errors %}<div class="flash flash-error">{% for e in profile_form.non_field_errors %}{{ e }}{% endfor %}</div>{% endif %}
+    <section class="panel cut">
+        <h2 class="panel-title">مشخصات</h2>
+        <div class="grid-2">
+            {% include "Panel/_field.html" with field=profile_form.first_name optional=True %}
+            {% include "Panel/_field.html" with field=profile_form.last_name optional=True %}
+        </div>
+        {% include "Panel/_field.html" with field=profile_form.email optional=True %}
+        <button type="submit" class="btn btn-primary">ذخیره مشخصات</button>
+    </section>
+</form>
+
+<form method="post" novalidate>
+    {% csrf_token %}<input type="hidden" name="which" value="password">
+    {% if password_form.non_field_errors %}<div class="flash flash-error">{% for e in password_form.non_field_errors %}{{ e }}{% endfor %}</div>{% endif %}
+    <section class="panel cut">
+        <h2 class="panel-title">تغییر گذرواژه</h2>
+        {% include "Panel/_field.html" with field=password_form.old_password %}
+        <div class="grid-2">
+            {% include "Panel/_field.html" with field=password_form.new_password1 %}
+            {% include "Panel/_field.html" with field=password_form.new_password2 %}
+        </div>
+        <button type="submit" class="btn btn-primary">تغییر گذرواژه</button>
+    </section>
+</form>
+</div>
+{% endblock %}

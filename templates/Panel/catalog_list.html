@@ -1,0 +1,38 @@
+{% extends "Panel/base_panel.html" %}
+{% load panel_extras %}
+{% block title %}کاتالوگ PDF{% endblock %}
+{% block content %}
+<header class="page-head">
+    <div><h1>کاتالوگ PDF</h1><p class="sub">برای هر زبان سایت یک فایل PDF؛ دکمهٔ «دانلود کاتالوگ» در سایت همان فایلِ زبان صفحه را می‌دهد</p></div>
+</header>
+<div class="table-wrap cut">
+<table class="table">
+    <thead><tr><th>زبان</th><th>فایل</th><th>وضعیت</th><th>دانلود</th><th>آخرین تغییر</th><th></th></tr></thead>
+    <tbody>
+    {% for row in rows %}
+        <tr>
+            <td class="strong">{{ row.label }}</td>
+            {% if row.obj %}
+            <td class="nowrap"><span class="ltr" dir="ltr">{{ row.obj.download_filename }}</span><br><small class="muted">{{ row.obj.size|fa_filesize }}</small></td>
+            <td>{% if row.obj.is_active %}<span class="pill pill-on">فعال</span>{% else %}<span class="pill pill-off">غیرفعال</span>{% endif %}</td>
+            <td>{{ row.obj.download_count|fa_num }}</td>
+            <td class="nowrap">{{ row.obj.updated_at|jdatetime }}</td>
+            <td><div class="row-actions">
+                {% if perms.Core.view_catalogfile %}<a class="btn btn-sm" href="{% url 'panel:catalog_preview' row.code %}" target="_blank" rel="noopener">مشاهده</a>{% endif %}
+                {% if perms.Core.change_catalogfile %}
+                <a class="btn btn-sm" href="{% url 'panel:catalog_upload' row.code %}">جایگزینی</a>
+                <form class="inline-form" method="post" action="{% url 'panel:catalog_toggle' row.code %}">{% csrf_token %}<button type="submit" class="btn btn-sm">{% if row.obj.is_active %}غیرفعال کردن{% else %}فعال کردن{% endif %}</button></form>
+                {% endif %}
+                {% if perms.Core.delete_catalogfile %}<a class="btn btn-sm btn-ghost" href="{% url 'panel:catalog_delete' row.code %}">حذف</a>{% endif %}
+            </div></td>
+            {% else %}
+            <td colspan="4" class="muted">هنوز فایلی آپلود نشده است؛ دکمهٔ دانلود در سایت نمایش داده نمی‌شود.</td>
+            <td><div class="row-actions">{% if perms.Core.add_catalogfile %}<a class="btn btn-sm" href="{% url 'panel:catalog_upload' row.code %}">آپلود کاتالوگ</a>{% endif %}</div></td>
+            {% endif %}
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+<p class="hint">فقط فایل PDF و حداکثر ۵۰ مگابایت پذیرفته می‌شود. با جایگزینی، فایل قبلی از سرور پاک می‌شود و لینک دانلود سایت تغییر نمی‌کند.</p>
+{% endblock %}

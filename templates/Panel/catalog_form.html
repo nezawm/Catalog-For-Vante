@@ -1,0 +1,31 @@
+{% extends "Panel/base_panel.html" %}
+{% load panel_extras %}
+{% block title %}کاتالوگ {{ lang_label }}{% endblock %}
+{% block content %}
+<div class="form-wrap">
+<a class="back" href="{% url 'panel:catalog' %}"><svg class="ic"><use href="#i-arrow"/></svg>بازگشت به کاتالوگ‌ها</a>
+<header class="page-head"><div><h1>{% if object.pk %}جایگزینی{% else %}آپلود{% endif %} کاتالوگ {{ lang_label }}</h1><p class="sub">این فایل برای بازدیدکنندگان نسخهٔ {{ lang_label }} سایت دانلود می‌شود</p></div></header>
+<form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="flash flash-error">{% for e in form.non_field_errors %}{{ e }}{% endfor %}</div>{% endif %}
+    <section class="panel cut">
+        <h2 class="panel-title">فایل کاتالوگ</h2>
+        {% if object.pk %}
+        <p class="muted">فایل فعلی: <span class="ltr" dir="ltr">{{ object.download_filename }}</span> — {{ object.size|fa_filesize }} — {{ object.download_count|fa_num }} بار دانلود
+            · <a href="{% url 'panel:catalog_preview' object.language %}" target="_blank" rel="noopener">مشاهده</a></p>
+        {% endif %}
+        {% include "Panel/_field.html" with field=form.file hint="فقط PDF، حداکثر ۵۰ مگابایت." %}
+        {% if object.pk %}<p class="hint">اگر فایل جدیدی انتخاب نکنید، همان فایل فعلی می‌ماند.</p>{% endif %}
+    </section>
+    <section class="panel cut">
+        <h2 class="panel-title">نمایش در سایت</h2>
+        <label class="check" for="{{ form.is_active.id_for_label }}">{{ form.is_active }}<span>{{ form.is_active.label }}</span></label>
+    </section>
+    <div class="formbar cut">
+        <button type="submit" class="btn btn-primary">ذخیره</button>
+        <a class="link-light" href="{% url 'panel:catalog' %}">انصراف</a>
+        {% if object.pk and perms.Core.delete_catalogfile %}<a class="btn btn-outline-danger push" href="{% url 'panel:catalog_delete' object.language %}">حذف کاتالوگ</a>{% endif %}
+    </div>
+</form>
+</div>
+{% endblock %}

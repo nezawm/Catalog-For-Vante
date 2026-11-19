@@ -27,7 +27,7 @@ h1, h2, h3, p { margin: 0; }
 
 /* ----- قاب اصلی و سایدبار ----- */
 .shell { display: grid; grid-template-columns: 270px minmax(0, 1fr); min-height: 100vh; }
-.sidebar { background: var(--ink); color: #fff; border-top: 5px solid var(--orange); padding: 26px 18px 20px; display: flex; flex-direction: column; gap: 24px; position: sticky; top: 0; height: 100vh; }
+.sidebar { background: var(--ink); color: #fff; border-top: 5px solid var(--orange); padding: 26px 18px 20px; display: flex; flex-direction: column; gap: 24px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
 .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; padding: 0 6px; }
 .brand img { width: 52px; height: auto; border-radius: 6px; }
 .brand strong { display: block; font-size: 18px; font-weight: 800; line-height: 1.4; }
@@ -39,9 +39,14 @@ h1, h2, h3, p { margin: 0; }
 .side-foot { margin-top: auto; border-top: 1px solid #ffffff26; padding-top: 14px; display: flex; flex-direction: column; gap: 4px; }
 .side-foot a, .side-foot button { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 12px; padding: 10px 14px; cursor: pointer; font-weight: 600; width: 100%; }
 .side-foot a:hover, .side-foot button:hover { background: #ffffff14; }
-.side-foot button:focus-visible { outline: 3px solid var(--orange); }
+.side-logout { margin: -8px 0 0; }
+.side-logout button { all: unset; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 10px 14px; cursor: pointer; font-weight: 700; background: var(--orange); color: #fff; }
+.side-logout button:hover { background: var(--orange-700); }
+.side-logout button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
 
-.main { padding: 44px clamp(18px, 3.4vw, 48px) 70px; min-width: 0; }
+.main { --main-pad: clamp(18px, 3.4vw, 48px); padding: 44px var(--main-pad) 70px; min-width: 0; }
+
+/* نوار بالای ثابت: نام کاربر و دکمهٔ خروج همیشه در دسترس است (حتی وقتی سایدبار از صفحه بیرون می‌زند) */
 .page-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 26px; }
 .page-head h1 { font-size: 32px; font-weight: 800; line-height: 1.4; }
 .sub { color: var(--muted); }
@@ -146,6 +151,16 @@ textarea.input { resize: vertical; }
 .login-card h1 { font-size: 24px; font-weight: 800; }
 .login-card .sub { margin-bottom: 20px; }
 
+/* ----- کاتالوگ PDF ----- */
+.catalog-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.catalog-card { background: var(--paper); border-inline-start: 4px solid var(--orange); padding: 14px 18px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.catalog-card-head { display: flex; align-items: center; gap: 12px; }
+.catalog-card-head strong { font-size: 17px; }
+.nowrap { white-space: nowrap; }
+.row-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.inline-form { display: inline; margin: 0; }
+input[type="file"].input { padding: 8px 10px; }
+
 /* ----- واکنش‌گرا ----- */
 @media (max-width: 960px) {
     .shell { grid-template-columns: 1fr; }
@@ -153,9 +168,43 @@ textarea.input { resize: vertical; }
     .nav { flex-direction: row; flex-wrap: wrap; }
     .side-foot { margin: 0; border: 0; padding: 0; flex-direction: row; }
     .side-foot a, .side-foot button { width: auto; }
-    .stats, .dash-grid, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    .stats, .dash-grid, .grid-3, .grid-4, .catalog-cards { grid-template-columns: 1fr; }
     .grid-2 { grid-template-columns: 1fr; }
     .main { padding-top: 26px; }
     .page-head h1 { font-size: 26px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* ---- QR، آمار و لاگ ---- */
+.stats-4 { grid-template-columns: repeat(4, 1fr); }
+.stats-4 .stat b { font-size: 38px; }
+.stat b.warn { color: var(--red); }
+.pill-fail { background: var(--red-bg); color: var(--red); }
+.qr-top { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 22px; align-items: start; margin-bottom: 4px; }
+.qr-card { text-align: center; }
+.qr-img { display: block; margin: 0 auto 14px; background: #fff; border: 1px solid var(--line); padding: 8px; max-width: 100%; height: auto; }
+.qr-card .actions { justify-content: center; flex-wrap: wrap; }
+.qr-card .hint { word-break: break-all; }
+.bars { display: flex; align-items: flex-end; gap: 3px; height: 150px; direction: ltr; border-bottom: 2px solid var(--ink); }
+.bar { flex: 1; height: 100%; display: flex; align-items: flex-end; }
+.bar i { display: block; width: 100%; background: var(--orange); min-height: 2px; }
+.bar:hover i { background: var(--ink); }
+.bars-axis { display: flex; justify-content: space-between; direction: ltr; color: var(--muted); font-size: 13px; margin-top: 4px; }
+.brk { display: grid; gap: 8px; }
+.brk-row { display: grid; grid-template-columns: minmax(80px, 150px) 1fr auto; align-items: center; gap: 10px; }
+.brk-label { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.brk-bar { background: var(--paper); height: 12px; display: block; }
+.brk-bar i { display: block; height: 100%; background: var(--orange); }
+@media (max-width: 900px) { .qr-top { grid-template-columns: 1fr; } .stats-4 { grid-template-columns: repeat(2, 1fr); } .grid-3 { grid-template-columns: 1fr; } }
+
+/* ---- اعضا و سطح دسترسی ---- */
+.role-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.role-card { background: var(--paper); border-inline-start: 4px solid var(--orange); padding: 10px 14px; display: grid; gap: 2px; }
+.role-card span { color: var(--muted); font-size: 13.5px; line-height: 1.7; }
+.pill-role-senior { background: var(--ink); color: #fff; }
+.role-choices { display: grid; gap: 10px; margin-bottom: 16px; }
+.role-choice { display: flex; gap: 12px; align-items: flex-start; background: var(--paper); border: 2px solid transparent; padding: 12px 14px; cursor: pointer; }
+.role-choice:has(input:checked) { border-color: var(--orange); background: var(--orange-100); }
+.role-choice input { width: 20px; height: 20px; margin-top: 6px; accent-color: var(--orange-700); }
+.role-choice strong { display: block; }
+.role-choice small { display: block; color: var(--muted); font-size: 13.5px; line-height: 1.7; }
