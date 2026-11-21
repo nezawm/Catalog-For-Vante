@@ -37,7 +37,10 @@
     </main>
 
     <footer class="site-footer">
-        <div class="container">{% block footer %}{% t "footer" %}{% endblock %}</div>
+        <div class="container">
+            {% block footer %}{% t "footer" %}{% endblock %}
+            {% if contact_phone %}<div class="footer-contact">{% t "contact_label" %} <a href="tel:{{ contact_phone }}">{{ contact_phone }}</a></div>{% endif %}
+        </div>
     </footer>
     <script src="{% static 'Core/js/menu.js' %}"></script>
 </body>

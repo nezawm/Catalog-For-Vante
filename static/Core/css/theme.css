@@ -79,7 +79,7 @@ main.container { flex: 1; }
     font-weight: 600;
     padding: 6px 18px;
     background: var(--paper);
-    clip-path: polygon(var(--cut-s) 0, 100% 0, calc(100% - var(--cut-s)) 100%, 0 100%);
+    border-radius: 999px;
     transition: background .2s, color .2s;
 }
 .site-nav a:hover { background: var(--orange); color: #fff; }
@@ -92,9 +92,11 @@ main.container { flex: 1; }
     overflow: hidden;
     background: var(--orange);
     color: #fff;
-    padding: 56px 48px;
+    --hero-py: 56px;
+    --hero-px: 48px;
+    padding: var(--hero-py) var(--hero-px);
     margin: 36px 0;
-    clip-path: polygon(0 0, calc(100% - 44px) 0, 100% 44px, 100% 100%, 44px 100%, 0 calc(100% - 44px));
+    border-radius: 36px;
 }
 .hero::before {
     content: "";
@@ -103,17 +105,7 @@ main.container { flex: 1; }
     inset-inline-end: 0;
     width: 38%;
     background: repeating-linear-gradient(-45deg, rgba(255,255,255,.14) 0 22px, transparent 22px 44px);
-    clip-path: polygon(70px 0, 100% 0, 100% 100%, 0 100%);
     pointer-events: none;
-}
-.hero::after {
-    content: "";
-    position: absolute;
-    inset-inline-start: 0;
-    bottom: 0;
-    width: 120px;
-    height: 12px;
-    background: #fff;
 }
 .hero > * { position: relative; z-index: 1; }
 .hero h1 { margin: 0 0 8px; font-size: 44px; font-weight: 800; line-height: 1.4; }
@@ -125,7 +117,7 @@ main.container { flex: 1; }
     font-weight: 800;
     padding: 0 16px;
     margin-bottom: 12px;
-    clip-path: polygon(var(--cut-s) 0, 100% 0, calc(100% - var(--cut-s)) 100%, 0 100%);
+    border-radius: 999px;
 }
 
 .btn {
@@ -136,7 +128,7 @@ main.container { flex: 1; }
     color: var(--orange-700);
     font-weight: 800;
     text-decoration: none;
-    clip-path: polygon(var(--cut-s) 0, 100% 0, calc(100% - var(--cut-s)) 100%, 0 100%);
+    border-radius: 999px;
     transition: background .2s, color .2s;
 }
 .btn:hover { background: var(--ink); color: #fff; }
@@ -261,7 +253,7 @@ main.container { flex: 1; }
     font-size: 22px;
     font-weight: 800;
     text-decoration: none;
-    clip-path: polygon(var(--cut) 0, 100% 0, calc(100% - var(--cut)) 100%, 0 100%);
+    border-radius: 999px;
     transition: background .2s;
 }
 .lang-btn:hover { background: var(--ink); }
@@ -297,7 +289,7 @@ main a.btn-back, .btn-back {
     font-weight: 700;
     text-decoration: none;
     border: 0;
-    clip-path: polygon(var(--cut-s) 0, 100% 0, calc(100% - var(--cut-s)) 100%, 0 100%);
+    border-radius: 999px;
     transition: background .2s;
 }
 main a.btn-back:hover, .btn-back:hover { background: var(--orange); color: #fff; }
@@ -312,7 +304,7 @@ a:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
     .site-nav { flex-wrap: nowrap; gap: 4px; min-width: 0; }
     .site-nav a { padding: 2px 12px; font-size: 13px; line-height: 1.9; white-space: nowrap; }
     .header-logo img { height: 38px; }
-    .hero { padding: 36px 24px; clip-path: polygon(0 0, calc(100% - 28px) 0, 100% 28px, 100% 100%, 28px 100%, 0 calc(100% - 28px)); }
+    .hero { --hero-py: 36px; --hero-px: 24px; border-radius: 26px; }
     .hero h1 { font-size: 30px; }
     .lang-page::before, .lang-page::after { opacity: .5; }
 }
@@ -460,7 +452,7 @@ html[dir="ltr"] .menu-list { direction: ltr; }
 .menu-list a {
     display: block; padding: 12px 18px; text-align: center;
     font-weight: 700; text-decoration: none; color: var(--ink); background: var(--paper);
-    clip-path: polygon(var(--cut-s) 0, 100% 0, calc(100% - var(--cut-s)) 100%, 0 100%);
+    border-radius: 999px;
     transition: background .2s, color .2s;
 }
 .menu-list a:hover { background: var(--orange); color: #fff; }
@@ -479,4 +471,33 @@ html[dir="ltr"] .menu-list { direction: ltr; }
     .menu-toggle-bars i { height: 4px; }
     .site-menu.is-open .menu-toggle-bars i:nth-child(1) { transform: translateY(9px) rotate(45deg); }
     .site-menu.is-open .menu-toggle-bars i:nth-child(3) { transform: translateY(-9px) rotate(-45deg); }
+}
+
+/* صفحهٔ محصول: نوار بالای کادر نارنجی + متن وسط‌چین */
+.hero-band {
+    margin: calc(var(--hero-py) * -1) calc(var(--hero-px) * -1) 22px 0;
+    padding: 10px var(--hero-px);
+    background: #fbd3bd;
+    color: var(--orange-700);
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1.6;
+    text-align: center;
+}
+.hero--product .hero-text { text-align: center; align-self: flex-start; }
+.hero--product .hero-text p { margin-inline: auto; }
+
+/* اطلاعات تماس در فوتر */
+.footer-contact { margin-top: 6px; font-weight: 700; }
+.footer-contact a { color: #fff; text-decoration: none; direction: ltr; unicode-bidi: isolate; }
+.footer-contact a:hover { color: var(--orange); }
+
+/* موبایل: نوار عنوان تا لبه‌های کادر */
+@media (max-width: 800px) {
+    .hero--product .hero-band {
+        margin: calc(var(--hero-py) * -1) calc(var(--hero-px) * -1) 20px;
+        padding: 10px var(--hero-px);
+    }
+    .hero--product .hero-text { align-self: stretch; }
+    .hero--product .hero-logo { justify-content: center; }
 }

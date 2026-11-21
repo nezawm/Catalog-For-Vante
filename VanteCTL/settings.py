@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -150,3 +151,6 @@ MEDIA_ROOT = BASE_DIR / "media"
 # آی‌پی در لاگ ورود: پشت nginx/پروکسی این را True کنید تا از X-Forwarded-For خوانده شود
 # (فقط وقتی پروکسی شما این هدر را خودش مقداردهی می‌کند، وگرنه قابل جعل است).
 LOG_TRUST_PROXY_HEADER = False
+
+# شماره تماس نمایش‌داده‌شده در فوتر (از متغیر محیطی CONTACT_PHONE)
+CONTACT_PHONE = os.environ.get("CONTACT_PHONE", "011-3514")

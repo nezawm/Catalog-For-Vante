@@ -4,9 +4,9 @@
 {% block title %}{{ category.display_title }} - {{ subcategory.display_name }}{% endblock %}
 
 {% block content %}
-<section class="hero hero--home">
+<section class="hero hero--home hero--product">
     <div class="hero-text">
-        <div class="hero-label">{{ category.name }}</div>
+        <div class="hero-band">{{ category.name }}</div>
         <h1>{{ subcategory.display_name }}</h1>
         <p>{% if subcategory.display_description %}{{ subcategory.display_description }}{% else %}{{ category.display_title }}{% endif %}</p>
     </div>

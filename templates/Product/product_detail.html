@@ -4,9 +4,9 @@
 {% block title %}{{ product.display_name }}{% endblock %}
 
 {% block content %}
-<section class="hero hero--home">
+<section class="hero hero--home hero--product">
     <div class="hero-text">
-        <div class="hero-label">{{ product.category.name }}{% if product.subcategory %} / {{ product.subcategory.display_name }}{% endif %}</div>
+        <div class="hero-band">{{ product.category.name }}{% if product.subcategory %} / {{ product.subcategory.display_name }}{% endif %}</div>
         <h1>{{ product.display_name }}</h1>
         <p>{{ product.display_description }}</p>
     </div>
