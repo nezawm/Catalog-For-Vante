@@ -501,3 +501,59 @@ html[dir="ltr"] .menu-list { direction: ltr; }
     .hero--product .hero-text { align-self: stretch; }
     .hero--product .hero-logo { justify-content: center; }
 }
+
+/* =====================================================================
+   نسخهٔ موبایل (≤ 640px) — این بلوک باید آخر فایل بماند تا بر قاعده‌های قبلی غلبه کند
+   ===================================================================== */
+@media (max-width: 640px) {
+
+    /* ---- همه‌چیز کمی کوچک‌تر ---- */
+    .container { padding: 0 16px; }
+    .hero { --hero-py: 28px; --hero-px: 20px; margin: 24px 0; border-radius: 22px; }
+    .hero h1 { font-size: 26px; }
+    .hero p { font-size: 14.5px; line-height: 1.8; }
+    .hero-band { font-size: 16px; padding-block: 8px; }
+    .hero--home { gap: 18px; }
+    .hero--home .hero-logo .vm { max-width: 180px; }
+    .btn { padding: 9px 26px; font-size: 14px; margin-top: 12px; }
+    .motion-text li { font-size: 14px; }
+    .section-title { font-size: 20px; margin: 28px 0 14px; gap: 10px; }
+    .section-title::before { width: 22px; height: 22px; }
+    .card-grid { gap: 14px; }
+    .card { padding: 20px 18px 18px; }
+    .card-name { font-size: 20px; }
+    .card-title { font-size: 16px; }
+    .card-desc { font-size: 14px; }
+    .spec-table th, .spec-table td { padding: 9px 12px; font-size: 14px; }
+    .site-footer { padding: 16px 0; margin-top: 40px; font-size: 14px; }
+    main a.btn-back, .btn-back { padding: 8px 22px; font-size: 14px; }
+
+    /* ---- هدر: ردیف اول = دکمهٔ زبان (چپ) + منو و لوگو (راست)، ردیف دوم = خانه و دانلود کاتالوگ ---- */
+    .site-header { padding: 8px 0 10px; }
+    .site-header .container { flex-wrap: wrap; justify-content: space-between; gap: 8px 6px; padding: 0 12px; }
+    .site-header .site-nav { display: contents; }
+    .site-header .site-nav a { padding: 4px 14px; font-size: 13px; line-height: 1.8; text-align: center; white-space: nowrap; }
+    .site-header .container::after { content: ""; order: 3; flex: 0 0 100%; height: 0; }   /* شکستن ردیف */
+    .site-header .site-nav .lang-switch { order: 1; }
+    .header-brand { order: 2; }
+    .site-header .site-nav a:not(.lang-switch) { order: 4; flex: 1 1 0; min-width: 0; }
+    /* ترتیب ردیف دوم: در فارسی «خانه» راست‌ترین است، در انگلیسی چپ‌ترین */
+    html[dir="rtl"] .site-header .site-nav a:first-child { order: 5; }
+    html[dir="ltr"] .site-header .site-nav a.nav-download { order: 5; }
+    .header-logo img { height: 32px; }
+    .menu-toggle { width: 36px; height: 36px; }
+
+    /* ---- صفحهٔ انتخاب زبان: لوگو ← متن ← انتخاب زبان، با فاصله‌ی مناسب ---- */
+    .lang-page { gap: 0; padding: 32px 20px; }
+    .lang-page .vm { order: 1; width: min(210px, 58vw); }
+    .lang-page .lang-motion {
+        order: 2; position: static; top: auto; right: auto;
+        align-items: center; margin: 28px 0 0; gap: 8px;
+    }
+    .lang-page .lang-motion li { font-size: 14px; padding: 0 16px; }
+    .lang-page .lang-hint { order: 3; margin-top: 36px; }
+    .lang-page .lang-buttons { order: 4; margin-top: 16px; gap: 12px; }
+    .lang-hint-fa { font-size: 20px; }
+    .lang-hint-en { font-size: 16px; }
+    .lang-btn { min-width: 128px; padding: 12px 18px; font-size: 18px; }
+}
