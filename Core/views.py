@@ -1,10 +1,10 @@
+import re
+
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import FileResponse, Http404, HttpResponsePermanentRedirect, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_safe
 from django.views.generic import TemplateView
-import re
-
 from .models import CatalogFile, QRCode, QRScan
 from .useragent import is_bot, parse_user_agent, visitor_hash
 from .slugs import make_slug
@@ -94,3 +94,5 @@ def qr_scan(request, code):
     response = HttpResponseRedirect(qr.target)
     response["Cache-Control"] = "no-store"  # تا هر اسکن به سرور برسد
     return response
+
+

@@ -149,3 +149,50 @@ class CatalogHeaderButtonTests(CatalogTestBase):
         self.make_catalog("en", active=False)
         self.assertNotIn("/catalog/", self.client.get("/en/").content.decode())
         self.assertIn("/catalog/fa/", self.client.get("/fa/categories/").content.decode())
+
+
+class CatalogFileTransactionTests(CatalogTestBase):
+    """مدل: حذف/جایگزینی فایل فقط بعد از commit؛ در رولبک رکورد قدیمی و فایلش سالم می‌مانند."""
+
+    def test_rollback_after_replace_keeps_old_file(self):
+        from django.db import transaction
+
+        catalog = self.make_catalog("fa")
+        old, storage = catalog.file.name, catalog.file.storage
+        with self.captureOnCommitCallbacks(execute=True) as callbacks:
+            with self.assertRaises(RuntimeError), transaction.atomic():
+                catalog.file = SimpleUploadedFile("n.pdf", PDF + b"%n", content_type="application/pdf")
+                catalog.save()
+                raise RuntimeError("fail after save")
+        self.assertEqual(callbacks, [])
+        self.assertTrue(storage.exists(old))
+        catalog.refresh_from_db()
+        self.assertEqual(catalog.file.name, old)
+
+    def test_commit_after_replace_deletes_old_file(self):
+        catalog = self.make_catalog("fa")
+        old, storage = catalog.file.name, catalog.file.storage
+        with self.captureOnCommitCallbacks(execute=True):
+            catalog.file = SimpleUploadedFile("n.pdf", PDF + b"%n", content_type="application/pdf")
+            catalog.save()
+        self.assertFalse(storage.exists(old))
+        self.assertTrue(storage.exists(catalog.file.name))
+
+    def test_rollback_after_delete_keeps_file(self):
+        from django.db import transaction
+
+        catalog = self.make_catalog("en")
+        name, storage = catalog.file.name, catalog.file.storage
+        with self.captureOnCommitCallbacks(execute=True):
+            with self.assertRaises(RuntimeError), transaction.atomic():
+                catalog.delete()
+                raise RuntimeError("fail after delete")
+        self.assertTrue(storage.exists(name))
+        self.assertTrue(type(catalog).objects.filter(language="en").exists())
+
+    def test_commit_after_delete_removes_file(self):
+        catalog = self.make_catalog("en")
+        name, storage = catalog.file.name, catalog.file.storage
+        with self.captureOnCommitCallbacks(execute=True):
+            catalog.delete()
+        self.assertFalse(storage.exists(name))

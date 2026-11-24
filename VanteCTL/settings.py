@@ -11,22 +11,92 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
+
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
+def load_env_file(path):
+    """فایل .env (خط‌های KEY=VALUE) را می‌خواند؛ متغیرهایی که از قبل در محیط تنظیم شده‌اند عوض نمی‌شوند."""
+    try:
+        lines = path.read_text(encoding="utf-8-sig").splitlines()
+    except FileNotFoundError:
+        return
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+            value = value[1:-1]
+        os.environ.setdefault(key.strip(), value)
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-4@y)ky618gb^b%4xys-bk&d^osn@g$op^&csu^(aqp(s4dq6oz'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# مسیر فایل env قابل تغییر است (تست‌ها از آن استفاده می‌کنند تا به .env شخصی وابسته نباشند).
+load_env_file(Path(os.environ.get("DJANGO_ENV_FILE") or BASE_DIR / ".env"))
 
-ALLOWED_HOSTS = []
+
+def env_bool(name, default=False):
+    value = os.environ.get(name)
+    if value is None or value.strip() == "":
+        return default
+    return value.strip().lower() in ("1", "true", "yes", "on")
+
+
+def env_list(name):
+    return [item.strip() for item in os.environ.get(name, "").split(",") if item.strip()]
+
+
+# امنیت: همهٔ این مقدارها از محیط (یا فایل .env کنار manage.py) خوانده می‌شوند.
+# کلیدی که قبلاً داخل کد (و گیت‌هاب) بوده لو رفته حساب می‌شود و هرگز نباید روی سرور استفاده شود.
+LEAKED_SECRET_KEYS = {
+    "django-insecure-4@y)ky618gb^b%4xys-bk&d^osn@g$op^&csu^(aqp(s4dq6oz",
+}
+TESTING = len(sys.argv) > 1 and sys.argv[1] == "test"
+
+DEBUG = env_bool("DJANGO_DEBUG", False)
+
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "")
+if not SECRET_KEY:
+    if DEBUG or TESTING:
+        # فقط برای توسعه و تست؛ در حالت production بدون کلید، برنامه بالا نمی‌آید.
+        SECRET_KEY = "django-insecure-dev-only-key-do-not-use-in-production"
+    else:
+        raise ImproperlyConfigured("متغیر DJANGO_SECRET_KEY تنظیم نشده است (فایل .env.example را ببینید).")
+elif not (DEBUG or TESTING):
+    if SECRET_KEY in LEAKED_SECRET_KEYS:
+        raise ImproperlyConfigured("این SECRET_KEY قبلاً در کد منتشر شده؛ یک کلید جدید بسازید (README را ببینید).")
+    # همان معیار «manage.py check --deploy» (W009): کلید کوتاه، کم‌تنوع یا نمونه (django-insecure-) ضعیف است.
+    if len(SECRET_KEY) < 50 or len(set(SECRET_KEY)) < 5 or SECRET_KEY.startswith("django-insecure-"):
+        raise ImproperlyConfigured(
+            "DJANGO_SECRET_KEY ضعیف است (حداقل ۵۰ نویسهٔ تصادفی لازم است؛ یک عبارت نمونه یا دست‌نویس کافی نیست). "
+            "کلید جدید را با دستور داخل README بسازید."
+        )
+
+ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS")
+if DEBUG and not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1", "[::1]"]
+if not DEBUG and not ALLOWED_HOSTS and not TESTING:
+    raise ImproperlyConfigured("متغیر DJANGO_ALLOWED_HOSTS تنظیم نشده است (مثلاً example.com,www.example.com).")
+
+# سخت‌گیری production: فقط وقتی DEBUG خاموش است (و در اجرای تست‌ها اعمال نمی‌شود تا کلاینت تست http کار کند).
+PRODUCTION = not DEBUG and not TESTING
+CSRF_TRUSTED_ORIGINS = env_list("DJANGO_CSRF_TRUSTED_ORIGINS")  # مثلاً https://example.com
+if PRODUCTION:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = env_bool("DJANGO_SSL_REDIRECT", True)
+    # HSTS تا وقتی مطمئن نیستید HTTPS درست کار می‌کند صفر بماند؛ بعد مثلاً 31536000 (یک سال).
+    SECURE_HSTS_SECONDS = int(os.environ.get("DJANGO_HSTS_SECONDS") or 0)
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = SECURE_HSTS_SECONDS > 0
+    if env_bool("DJANGO_BEHIND_PROXY", False):
+        # فقط وقتی nginx/پروکسی خودش X-Forwarded-Proto را مقداردهی می‌کند؛ وگرنه قابل جعل است.
+        SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 
 # Application definition
@@ -129,7 +199,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = "static/"
+STATICFILES_DIRS = [BASE_DIR / "static"]
+# مقصد دستور collectstatic؛ وب‌سرور (nginx) باید /static/ را از همین پوشه سرو کند.
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 
 # Email
@@ -141,16 +214,13 @@ MAILERS = {
     },
 }
 
-STATIC_URL = "static/"
-STATICFILES_DIRS = [BASE_DIR / "static"]
-
 # فایل‌های آپلودی (PDF کاتالوگ‌ها)؛ دانلود عمومی از مسیر /catalog/<lang>/ انجام می‌شود.
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # آی‌پی در لاگ ورود: پشت nginx/پروکسی این را True کنید تا از X-Forwarded-For خوانده شود
 # (فقط وقتی پروکسی شما این هدر را خودش مقداردهی می‌کند، وگرنه قابل جعل است).
-LOG_TRUST_PROXY_HEADER = False
+LOG_TRUST_PROXY_HEADER = env_bool("LOG_TRUST_PROXY_HEADER", False)
 
 # شماره تماس نمایش‌داده‌شده در فوتر (از متغیر محیطی CONTACT_PHONE)
 CONTACT_PHONE = os.environ.get("CONTACT_PHONE", "011-3514")

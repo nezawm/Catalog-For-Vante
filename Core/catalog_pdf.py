@@ -55,12 +55,15 @@ def _product_rows(product, labels):
         rows.append((labels["liner"], f"{product.liner_gsm} {labels['liner_unit']}", False))
     if product.adhesive:
         rows.append((labels["adhesive"], labels.get(f"adhesive_{product.adhesive}", product.adhesive), False))
-    if product.durability_years:
-        rows.append((labels["durability"], f"{product.durability_years} {labels['durability_unit']}", False))
-    if product.display_colors:
-        rows.append((labels["colors"], product.display_colors, False))
-    if product.roll_size:
-        rows.append((labels["roll_size"], f"{product.roll_size} {labels['roll_unit']}", False))
+    # ونلایت: فقط از ردیف‌های Vanlite (همان منبعی که پنل و سایت استفاده می‌کنند)؛ ستون‌های منسوخ Product خوانده نمی‌شوند.
+    for item in (v for v in product.vanlite_items.all() if v.is_active):
+        tag = f" ({item.display_product_code})" if item.display_product_code else ""
+        if item.display_durability_years:
+            rows.append((labels["durability"] + tag, f"{item.display_durability_years} {labels['durability_unit']}", False))
+        if item.display_colors:
+            rows.append((labels["colors"] + tag, item.display_colors, False))
+        if item.display_roll_size:
+            rows.append((labels["roll_size"] + tag, f"{item.display_roll_size} {labels['roll_unit']}", False))
     for field in ("width_107", "width_127", "width_152"):
         value = (getattr(product, field) or "").strip()
         if value and set(value) != {"-"}:
@@ -85,6 +88,7 @@ def _build_context(lang):
     products = (
         Product.objects.filter(is_active=True, category__is_active=True)
         .select_related("category", "subcategory")
+        .prefetch_related("vanlite_items")
         .order_by("category__order", "category__name", "subcategory__order", "subcategory__name", "order", "name")
     )
     by_category = {}
