@@ -29,7 +29,8 @@ A bilingual (Persian / English) product catalog built with Django, featuring a d
 - **Client management panel** at `/panel/`: a simple, always-Persian interface for creating, editing, and deleting categories, subcategories, and products, with no need to use the Django admin.
 - **Automatic slugs**: URL-friendly slugs are generated from names, with a live preview in the panel and admin.
 - **Role-based access**: a dedicated `Catalog Manager` group limits panel users to catalog permissions only. It is created automatically after `migrate`.
-- **Configuration via environment variables**: secrets and deployment settings are kept out of the source code.
+- **Configuration via environment variables**: `SECRET_KEY`, `DEBUG` and `ALLOWED_HOSTS` are read from the environment (or a `.env` file); the app refuses to start in production without them.
+- **Vanlite rows**: the Vanlite table on a product page is edited in the panel's product form and shown on the site from the same rows.
 
 ## Screenshots
 
@@ -46,7 +47,7 @@ Add screenshots to `docs/screenshots/` and reference them here:
 | Language | Python 3.13 |
 | Framework | Django 6.1 |
 | Database | SQLite (default) |
-| Configuration | python-dotenv |
+| Configuration | Environment variables / `.env` file (small built-in loader) |
 | Front end | Django templates, vanilla CSS and JavaScript |
 
 ## Project Structure
@@ -57,7 +58,7 @@ VanteCTL/
 ├── Core/          # Landing page, language selection, shared helpers
 ├── Category/      # Category and Subcategory models and public views
 ├── Product/       # Product model and public views
-├── Panel/         # Client management panel (views, forms, middleware)
+├── Panel/         # Client management panel (views/ is split by area: products, catalog, stats, users, ...)
 ├── templates/     # HTML templates, grouped by app
 ├── static/        # CSS, JavaScript, and images
 ├── .env.example   # Template for environment variables
@@ -91,6 +92,7 @@ cp .env.example .env             # Windows: copy .env.example .env
 # 5. Create the database and an admin user
 python manage.py migrate
 python manage.py createsuperuser
+python manage.py create_panel_client <username>   # panel user for the client
 
 # 6. Start the development server
 python manage.py runserver
@@ -100,22 +102,27 @@ Open <http://127.0.0.1:8000/> in your browser. The Django admin is available at 
 
 ## Configuration
 
-All settings are read from a `.env` file in the project root. Copy `.env.example` to `.env` and adjust it.
+Settings are read from real environment variables or from a `.env` file next to `manage.py` (real environment variables win). Copy `.env.example` to `.env` and adjust it. `.env` is git-ignored.
 
 | Variable | Description | Default |
 | --- | --- | --- |
-| `DJANGO_SECRET_KEY` | Secret key used for signing. **Always set a unique value.** | insecure placeholder |
-| `DJANGO_DEBUG` | Enables debug mode (`True` / `False`). | `True` |
-| `DJANGO_ALLOWED_HOSTS` | Comma-separated list of allowed hostnames. | `localhost,127.0.0.1` |
-| `DJANGO_CSRF_TRUSTED_ORIGINS` | Comma-separated trusted origins, e.g. `https://example.com`. | empty |
-| `DJANGO_DB_NAME` | SQLite database file name. | `db.sqlite3` |
-| `DJANGO_EMAIL_BACKEND` | Django email backend class. | console backend |
+| `DJANGO_SECRET_KEY` | Secret key. **Required** when `DJANGO_DEBUG` is off; the app will not start without it. | none (a dev-only key is used when `DJANGO_DEBUG=True` and in tests) |
+| `DJANGO_DEBUG` | Debug mode (`True` / `False`). Keep it `False` on a server. | `False` |
+| `DJANGO_ALLOWED_HOSTS` | Comma-separated hostnames. **Required** when debug is off. | `localhost,127.0.0.1` in debug |
+| `DJANGO_CSRF_TRUSTED_ORIGINS` | Optional, e.g. `https://example.com`. | empty |
+| `DJANGO_HTTPS` | Optional. Only when the site really runs on https: secure cookies, redirect to https, HSTS. | `False` |
+| `DJANGO_BEHIND_PROXY` | Optional. Behind a proxy that sends `X-Forwarded-Proto`. | `False` |
+| `LOG_TRUST_PROXY_HEADER` | Optional. Trust `X-Forwarded-For` for visitor IPs. | `False` |
 
 To generate a secret key:
 
 ```bash
-python -c "import secrets; print(secrets.token_urlsafe(50))"
+python -c "from django.core.management.utils import get_random_secret_key as g; print(g())"
 ```
+
+### Leaked key
+
+An earlier version of `settings.py` contained a hard-coded `SECRET_KEY`. That key is public in the git history and is rejected by the app when `DJANGO_DEBUG` is off. If it was ever used on a server, generate a new one and set it only on the server. Removing it from the file is not enough, because it stays in the history.
 
 ## Client Panel
 
@@ -139,13 +146,12 @@ python manage.py test
 
 ## Deployment
 
-Before deploying to production:
-
-1. Set `DJANGO_DEBUG=False` and a unique, random `DJANGO_SECRET_KEY`.
-2. Set `DJANGO_ALLOWED_HOSTS` and `DJANGO_CSRF_TRUSTED_ORIGINS` to your domain.
-3. Collect static files with `python manage.py collectstatic`. They are written to `staticfiles/`.
-4. Serve the application with a production WSGI/ASGI server (for example Gunicorn behind Nginx) and serve static files from `staticfiles/`.
-5. Back up `db.sqlite3` regularly, or move to a production database such as PostgreSQL.
+1. Set `DJANGO_DEBUG=False`, a new `DJANGO_SECRET_KEY` and `DJANGO_ALLOWED_HOSTS` (and `DJANGO_CSRF_TRUSTED_ORIGINS` for https) on the server.
+2. `python manage.py migrate`
+3. `python manage.py collectstatic --noinput` (written to `staticfiles/`)
+4. Run the app with a production WSGI server (for example Gunicorn, installed separately) behind Nginx.
+5. Nginx must serve `/static/` from `staticfiles/` and `/media/` from `media/`; Django does not serve them when debug is off.
+6. Back up `db.sqlite3` and `media/` regularly, or move to a production database such as PostgreSQL.
 
 > `.env` and `db.sqlite3` are intentionally excluded from version control. Never commit secrets or user data.
 

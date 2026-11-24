@@ -58,16 +58,18 @@ class Product(BaseModel):
     width_152 = models.CharField(
         "عرض 1/52 متر", max_length=50, blank=True, null=True
     )
-    # ونلایت (شبرنگ EGP / HIP): مشخصات مخصوص این گروه؛ خالی بماند نمایش داده نمی‌شود.
+    # منسوخ: مشخصات ونلایت حالا فقط روی مدل Vanlite نگه‌داری و ویرایش می‌شود (پنل و سایت هر دو از آن می‌خوانند).
+    # این ستون‌ها فقط برای حفظ داده‌های قدیمی مانده‌اند (مایگریشن 0016 مقدارشان را به Vanlite منتقل کرده)
+    # و دیگر در پنل ویرایش یا در سایت نمایش داده نمی‌شوند. بعد از اطمینان از انتقال می‌شود حذفشان کرد.
     durability_years = models.PositiveSmallIntegerField(
-        "دوام (سال)", null=True, blank=True, help_text="مثلاً ۷ برای EGP یا ۱۰ برای HIP"
+        "دوام (سال)", null=True, blank=True, help_text="منسوخ؛ از ردیف‌های ونلایت استفاده کنید."
     )
     colors = models.CharField(
-        "رنگ‌ها", max_length=200, blank=True, help_text="مثلاً: سفید - قرمز - سبز"
+        "رنگ‌ها", max_length=200, blank=True, help_text="منسوخ؛ از ردیف‌های ونلایت استفاده کنید."
     )
     colors_en = models.CharField("رنگ‌ها (انگلیسی)", max_length=200, blank=True)
     roll_size = models.CharField(
-        "ابعاد رول (متر)", max_length=40, blank=True, help_text="مثلاً: 1.22 × 45.7"
+        "ابعاد رول (متر)", max_length=40, blank=True, help_text="منسوخ؛ از ردیف‌های ونلایت استفاده کنید."
     )
     description = models.TextField("توضیحات", blank=True)
     description_en = models.TextField("توضیحات (انگلیسی)", blank=True)
@@ -125,12 +127,14 @@ class Vanlite(BaseModel):
     type = models.CharField("نوع", max_length=60, blank=True, help_text="مثلاً EGP یا HIP")
     roll_size = models.CharField("رول سایز", max_length=40, blank=True, help_text="مثلاً: 1.22 × 45.7")
     durability_years = models.PositiveSmallIntegerField("دوام (سال)", null=True, blank=True)
+    colors = models.CharField("رنگ‌ها", max_length=200, blank=True, help_text="مثلاً: سفید - قرمز - سبز")
     product_code = models.CharField("کد محصول", max_length=60, blank=True)
     # --- English
     name_en = models.CharField("Product name", max_length=150, blank=True)
     type_en = models.CharField("Type", max_length=60, blank=True)
     roll_size_en = models.CharField("Roll size", max_length=40, blank=True)
     durability_years_en = models.PositiveSmallIntegerField("Durability (years)", null=True, blank=True)
+    colors_en = models.CharField("Colors", max_length=200, blank=True)
     product_code_en = models.CharField("Product code", max_length=60, blank=True)
     order = models.PositiveSmallIntegerField("ترتیب نمایش", default=0)
 
@@ -153,6 +157,10 @@ class Vanlite(BaseModel):
     @property
     def display_roll_size(self):
         return self.localized("roll_size")
+
+    @property
+    def display_colors(self):
+        return self.localized("colors")
 
     @property
     def display_product_code(self):

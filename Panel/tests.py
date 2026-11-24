@@ -1,12 +1,14 @@
 from django.contrib.auth import get_user_model
+from django.contrib.messages import get_messages
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 from django.test import TestCase
 from django.urls import reverse
 
 from Category.models import Category, Subcategory
+from Core.models import CatalogFile
 from Core.tests import PDF, CatalogTestBase
-from Product.models import Product
+from Product.models import Product, Vanlite
 
 PASSWORD = "client-pass-12345"
 
@@ -167,7 +169,8 @@ class PanelCatalogTests(CatalogTestBase):
         catalog = CatalogFile.objects.get(language="fa")
         CatalogFile.objects.filter(pk=catalog.pk).update(download_count=7)
         old_name = catalog.file.name
-        self.upload("fa", data=PDF + b"%new")
+        with self.captureOnCommitCallbacks(execute=True):
+            self.upload("fa", data=PDF + b"%new")
         catalog.refresh_from_db()
         self.assertNotEqual(catalog.file.name, old_name)
         self.assertFalse(catalog.file.storage.exists(old_name))
@@ -204,7 +207,9 @@ class PanelCatalogTests(CatalogTestBase):
         self.upload("fa")
         catalog = CatalogFile.objects.get(language="fa")
         name, storage = catalog.file.name, catalog.file.storage
-        self.assertRedirects(self.client.post(reverse("panel:catalog_delete", args=["fa"])), reverse("panel:catalog"))
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.client.post(reverse("panel:catalog_delete", args=["fa"]))
+        self.assertRedirects(response, reverse("panel:catalog"))
         self.assertFalse(CatalogFile.objects.filter(language="fa").exists())
         self.assertFalse(storage.exists(name))
 
@@ -452,3 +457,217 @@ class MemberManagementTests(PanelTestBase):
         user.refresh_from_db()
         self.assertTrue(user.check_password("Another-pass-9"))
         self.assertEqual(self.client.get(reverse("panel:dashboard")).status_code, 200)  # هنوز واردِ پنل است
+
+
+def vanlite_post(rows, initial=0, **product):
+    """داده‌ی POST فرم محصول + ردیف‌های ونلایت (با management form)."""
+    data = {"vanlite-TOTAL_FORMS": str(len(rows)), "vanlite-INITIAL_FORMS": str(initial),
+            "vanlite-MIN_NUM_FORMS": "0", "vanlite-MAX_NUM_FORMS": "1000", **product}
+    for i, row in enumerate(rows):
+        for key, value in row.items():
+            data[f"vanlite-{i}-{key}"] = value
+    return data
+
+
+class PanelVanliteTests(PanelTestBase):
+    """چیزی که در پنل وارد می‌شود باید همان چیزی باشد که در سایت دیده می‌شود."""
+
+    def product_data(self, product, **extra):
+        return {"category": product.category_id, "subcategory": "", "name": product.name,
+                "face_unit": "micron", "order": "0", "is_active": "on", **extra}
+
+    def test_panel_values_show_on_site(self):
+        self.login()
+        data = vanlite_post(
+            [{"name": "EGP-White", "type": "EGP", "product_code": "V607W", "roll_size": "1.22 × 45.7",
+              "durability_years": "7", "colors": "سفید - قرمز", "colors_en": "White - Red",
+              "order": "0", "is_active": "on"}],
+            **self.product_data(self.product),
+        )
+        response = self.client.post(reverse("panel:product_update", args=[self.product.pk]), data)
+        self.assertRedirects(response, reverse("panel:product_list"))
+        row = self.product.vanlite_items.get()
+        self.assertEqual((row.roll_size, row.durability_years, row.colors), ("1.22 × 45.7", 7, "سفید - قرمز"))
+        html = self.client.get(self.product.get_absolute_url()).content.decode()
+        for expected in ("V607W", "سفید - قرمز", "1.22 × 45.7"):
+            self.assertIn(expected, html)
+        # بدون کپی روی ستون‌های قدیمی Product
+        self.product.refresh_from_db()
+        self.assertEqual((self.product.colors, self.product.roll_size, self.product.durability_years), ("", "", None))
+
+    def test_form_page_shows_existing_rows_and_empty_template(self):
+        Vanlite.objects.create(product=self.product, name="EGP-Red", product_code="V607R")
+        self.login()
+        response = self.client.get(reverse("panel:product_update", args=[self.product.pk]))
+        html = response.content.decode()
+        self.assertIn("V607R", html)
+        self.assertIn("vanlite-__prefix__-name", html)
+        self.assertEqual(len(response.context["vanlite_formset"].forms), 1)
+
+    def test_blank_name_falls_back_to_product_name_and_blank_extra_row_is_ignored(self):
+        self.login()
+        data = vanlite_post(
+            [{"name": "", "roll_size": "1.22 x 45.7", "order": "0", "is_active": "on"},
+             {"order": "0", "is_active": "on"}],
+            **self.product_data(self.product),
+        )
+        self.client.post(reverse("panel:product_update", args=[self.product.pk]), data)
+        self.assertEqual(list(self.product.vanlite_items.values_list("name", flat=True)), [self.product.name])
+
+    def test_edit_existing_row_keeps_other_rows(self):
+        a = Vanlite.objects.create(product=self.product, name="A", roll_size="old", product_code="CA")
+        b = Vanlite.objects.create(product=self.product, name="B", product_code="CB")
+        self.login()
+        rows = [
+            {"id": a.pk, "product": self.product.pk, "name": "A", "roll_size": "new", "product_code": "CA", "order": "0", "is_active": "on"},
+            {"id": b.pk, "product": self.product.pk, "name": "B", "product_code": "CB", "order": "0", "is_active": "on"},
+        ]
+        self.client.post(reverse("panel:product_update", args=[self.product.pk]),
+                         vanlite_post(rows, initial=2, **self.product_data(self.product)))
+        a.refresh_from_db()
+        self.assertEqual(a.roll_size, "new")
+        self.assertTrue(Vanlite.objects.filter(pk=b.pk).exists())
+
+    def test_post_without_vanlite_form_leaves_rows_untouched(self):
+        Vanlite.objects.create(product=self.product, name="A", product_code="CA")
+        self.login()
+        response = self.client.post(reverse("panel:product_update", args=[self.product.pk]), self.product_data(self.product))
+        self.assertRedirects(response, reverse("panel:product_list"))
+        self.assertEqual(self.product.vanlite_items.count(), 1)
+
+    def test_new_product_with_rows_created_together(self):
+        self.login()
+        data = vanlite_post([{"name": "N1", "product_code": "X1", "order": "0", "is_active": "on"}],
+                            category=self.category.pk, subcategory="", name="محصول نو", face_unit="micron",
+                            order="0", is_active="on")
+        self.client.post(reverse("panel:product_create"), data)
+        self.assertEqual(Product.objects.get(name="محصول نو").vanlite_items.get().product_code, "X1")
+
+    def test_invalid_product_saves_no_rows(self):
+        self.login()
+        data = vanlite_post([{"name": "N1", "order": "0", "is_active": "on"}],
+                            category=self.category.pk, subcategory="", name="", face_unit="micron", order="0")
+        response = self.client.post(reverse("panel:product_create"), data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Vanlite.objects.count(), 0)
+
+    def test_invalid_row_blocks_save_and_shows_error(self):
+        self.login()
+        data = vanlite_post([{"name": "N", "durability_years": "abc", "order": "0", "is_active": "on"}],
+                            **self.product_data(self.product, name="تغییر نام"))
+        response = self.client.post(reverse("panel:product_update", args=[self.product.pk]), data)
+        self.assertEqual(response.status_code, 200)
+        self.product.refresh_from_db()
+        self.assertNotEqual(self.product.name, "تغییر نام")  # هیچ‌چیز نیمه‌کاره ذخیره نشد
+
+    def test_delete_row_needs_delete_permission(self):
+        row = Vanlite.objects.create(product=self.product, name="A", product_code="CA")
+        editor = get_user_model().objects.create_user("ed", password=PASSWORD)
+        from Panel.groups import set_user_role
+
+        set_user_role(editor, "editor")
+        self.client.login(username="ed", password=PASSWORD)
+        rows = [{"id": row.pk, "product": self.product.pk, "name": "A", "DELETE": "on", "order": "0", "is_active": "on"}]
+        self.client.post(reverse("panel:product_update", args=[self.product.pk]),
+                         vanlite_post(rows, initial=1, **self.product_data(self.product)))
+        self.assertTrue(Vanlite.objects.filter(pk=row.pk).exists())  # ویرایشگر حذف نمی‌تواند
+        self.client.logout()
+        self.login()  # مدیر کاتالوگ مجوز حذف دارد
+        self.client.post(reverse("panel:product_update", args=[self.product.pk]),
+                         vanlite_post(rows, initial=1, **self.product_data(self.product)))
+        self.assertFalse(Vanlite.objects.filter(pk=row.pk).exists())
+
+    def test_product_form_no_longer_has_old_vanlite_fields(self):
+        self.login()
+        form = self.client.get(reverse("panel:product_update", args=[self.product.pk])).context["form"]
+        for name in ("colors", "colors_en", "roll_size", "durability_years"):
+            self.assertNotIn(name, form.fields)
+
+
+class PanelSubcategoryMoveTests(PanelTestBase):
+    def setUp(self):
+        super().setUp()
+        self.other_cat = Category.objects.create(name="Vanjet", title="ونجت")
+
+    def move(self, sub, category):
+        return self.client.post(reverse("panel:subcategory_update", args=[sub.pk]), {
+            "category": category.pk, "name": sub.name, "order": "0", "is_active": "on"})
+
+    def test_moving_subcategory_in_panel_moves_products_and_says_so(self):
+        self.login()
+        response = self.move(self.sub, self.other_cat)
+        self.assertRedirects(response, reverse("panel:subcategory_list"))
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.category_id, self.other_cat.pk)
+        self.assertEqual(self.product.subcategory_id, self.sub.pk)
+        texts = [str(m) for m in get_messages(response.wsgi_request)]
+        self.assertTrue(any("منتقل شد" in t for t in texts), texts)
+
+    def test_product_is_not_left_inconsistent(self):
+        self.login()
+        self.move(self.sub, self.other_cat)
+        self.product.refresh_from_db()
+        self.product.full_clean()
+        self.assertEqual(self.product.subcategory.category_id, self.product.category_id)
+
+    def test_edit_without_category_change_does_not_move_anything(self):
+        self.login()
+        response = self.move(self.sub, self.category)
+        self.assertRedirects(response, reverse("panel:subcategory_list"))
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.category_id, self.category.pk)
+
+
+class PanelCatalogRollbackTests(CatalogTestBase):
+    """فایل PDF فقط بعد از موفقیت تراکنش پاک می‌شود."""
+
+    def setUp(self):
+        call_command("create_panel_client", "client", password=PASSWORD)
+        self.assertTrue(self.client.login(username="client", password=PASSWORD))
+
+    def post_upload(self, data):
+        return self.client.post(
+            reverse("panel:catalog_upload", args=["fa"]),
+            {"file": SimpleUploadedFile("c.pdf", data, content_type="application/pdf"), "is_active": "on"},
+        )
+
+    def test_old_file_not_deleted_before_commit(self):
+        self.post_upload(PDF)
+        catalog = CatalogFile.objects.get(language="fa")
+        old = catalog.file.name
+        with self.captureOnCommitCallbacks(execute=False) as callbacks:
+            self.post_upload(PDF + b"%new")
+        self.assertTrue(catalog.file.storage.exists(old))  # هنوز قطعی نشده
+        for callback in callbacks:
+            callback()
+        self.assertFalse(catalog.file.storage.exists(old))
+
+    def test_error_after_save_keeps_old_record_and_file(self):
+        from unittest import mock
+
+        self.post_upload(PDF)
+        catalog = CatalogFile.objects.get(language="fa")
+        old = catalog.file.name
+        from Panel.views import CatalogUploadView
+
+        # خطا بعد از ذخیرهٔ رکورد جدید (داخل form_valid) رخ می‌دهد
+        with mock.patch.object(CatalogUploadView, "get_success_url", side_effect=RuntimeError("boom")):
+            self.client.raise_request_exception = False
+            with self.captureOnCommitCallbacks(execute=True) as callbacks:
+                self.post_upload(PDF + b"%new")
+        self.assertEqual(callbacks, [])
+        catalog.refresh_from_db()
+        self.assertEqual(catalog.file.name, old)
+        self.assertTrue(catalog.file.storage.exists(old))
+
+    def test_delete_keeps_file_until_commit(self):
+        self.post_upload(PDF)
+        catalog = CatalogFile.objects.get(language="fa")
+        name, storage = catalog.file.name, catalog.file.storage
+        with self.captureOnCommitCallbacks(execute=False) as callbacks:
+            self.client.post(reverse("panel:catalog_delete", args=["fa"]))
+        self.assertFalse(CatalogFile.objects.filter(language="fa").exists())
+        self.assertTrue(storage.exists(name))
+        for callback in callbacks:
+            callback()
+        self.assertFalse(storage.exists(name))

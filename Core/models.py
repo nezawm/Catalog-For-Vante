@@ -1,6 +1,6 @@
 import secrets
 
-from django.db import models
+from django.db import models, transaction
 from django.db.models import F
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
@@ -81,13 +81,17 @@ class CatalogFile(BaseModel):
             old_name = type(self).objects.filter(pk=self.pk).values_list("file", flat=True).first() or ""
         super().save(*args, **kwargs)
         if old_name and old_name != self.file.name:
-            self.file.storage.delete(old_name)  # فایل قدیمیِ جایگزین‌شده روی سرور نماند
+            # فایل قدیمی فقط بعد از قطعی‌شدن تراکنش پاک می‌شود؛ اگر تراکنش برگردد، رکورد قدیمی و فایلش سالم می‌مانند.
+            storage = self.file.storage
+            transaction.on_commit(lambda: storage.delete(old_name))
 
 
 @receiver(post_delete, sender=CatalogFile)
 def _delete_catalog_file(sender, instance, **kwargs):
     if instance.file:
-        instance.file.delete(save=False)
+        # حذف فایل بعد از قطعی‌شدن حذف رکورد؛ در رولبک فایل می‌ماند.
+        storage, name = instance.file.storage, instance.file.name
+        transaction.on_commit(lambda: storage.delete(name))
 
 
 

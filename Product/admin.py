@@ -40,7 +40,7 @@ class VanliteAdmin(BaseModelAdmin):
 
     fieldsets = (
         (None, {"fields": ("product", "order", "is_active")}),
-        ("Vanlite - فارسی", {"fields": ("name", "type", "roll_size", "durability_years", "product_code")}),
-        ("Vanlite - English", {"fields": ("name_en", "type_en", "roll_size_en", "durability_years_en", "product_code_en")}),
+        ("Vanlite - فارسی", {"fields": ("name", "type", "roll_size", "durability_years", "colors", "product_code")}),
+        ("Vanlite - English", {"fields": ("name_en", "type_en", "roll_size_en", "durability_years_en", "colors_en", "product_code_en")}),
         ("اطلاعات سیستمی", {"fields": ("created_at", "updated_at")}),
     )

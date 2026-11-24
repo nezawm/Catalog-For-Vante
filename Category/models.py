@@ -1,8 +1,6 @@
-from django.db import models
-
-# Create your models here.
-from django.db import models
+from django.db import models, transaction
 from django.urls import reverse
+from django.utils import timezone
 
 from Core.models import BaseModel
 from Core.slugs import SLUG_HELP, make_slug, unique_slug
@@ -74,7 +72,16 @@ class Subcategory(BaseModel):
     def save(self, *args, **kwargs):
         base = self.slug or make_slug(self.name, fallback="subcategory")
         self.slug = unique_slug(Subcategory, base, pk=self.pk, category_id=self.category_id)
-        super().save(*args, **kwargs)
+        old_category_id = None
+        if self.pk:
+            old_category_id = (
+                type(self).objects.filter(pk=self.pk).values_list("category_id", flat=True).first()
+            )
+        with transaction.atomic():
+            super().save(*args, **kwargs)
+            if old_category_id is not None and old_category_id != self.category_id:
+                # محصولات زیردسته همراه آن به دستهٔ جدید می‌روند تا دستهٔ محصول و دستهٔ زیردسته‌اش یکی بماند.
+                self.products.update(category_id=self.category_id, updated_at=timezone.now())
 
     @property
     def display_name(self):
