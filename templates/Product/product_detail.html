@@ -37,22 +37,23 @@
     {% endif %}
 </table>
 
-{% with items=product.vanlite_items.all %}
+{% with items=vanlite_items %}
 {% if items %}
 <h2 class="section-title">{% t "vanlite" %}</h2>
 <div class="table-scroll" style="overflow-x:auto">
 <table class="spec-table">
-    <thead><tr><th>{% t "vl_name" %}</th><th>{% t "vl_type" %}</th><th>{% t "roll_size" %}</th><th>{% t "durability" %}</th><th>{% t "vl_code" %}</th></tr></thead>
+    <thead><tr><th>{% t "vl_name" %}</th><th>{% t "vl_type" %}</th><th>{% t "roll_size" %}</th><th>{% t "durability" %}</th>{% if show_vanlite_colors %}<th>{% t "colors" %}</th>{% endif %}<th>{% t "vl_code" %}</th></tr></thead>
     <tbody>
-    {% for v in items %}{% if v.is_active %}
+    {% for v in items %}
     <tr>
         <td>{{ v.display_name }}</td>
         <td>{{ v.display_type|default:"—" }}</td>
         <td><bdi dir="ltr">{{ v.display_roll_size|default:"—" }}</bdi></td>
         <td>{% if v.display_durability_years %}{{ v.display_durability_years }} {% t "durability_unit" %}{% else %}—{% endif %}</td>
+        {% if show_vanlite_colors %}<td>{{ v.display_colors|default:"—" }}</td>{% endif %}
         <td><bdi dir="ltr">{{ v.display_product_code|default:"—" }}</bdi></td>
     </tr>
-    {% endif %}{% endfor %}
+    {% endfor %}
     </tbody>
 </table>
 </div>

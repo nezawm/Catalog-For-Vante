@@ -1,10 +1,11 @@
 from django import forms
+from django.forms import inlineformset_factory
 from django.contrib.auth import get_user_model, password_validation
 from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm, UsernameField
 
 from Category.models import Category, Subcategory
 from Core.models import CatalogFile, QRCode
-from Product.models import Product
+from Product.models import Product, Vanlite
 
 from .groups import ROLES, user_role
 
@@ -41,7 +42,6 @@ class ProductForm(StyledFormMixin, forms.ModelForm):
             "name_en", "description_en", "face_material_en",
             "face_material", "face_value", "face_unit", "liner_gsm", "adhesive",
             "width_107", "width_127", "width_152",
-            "durability_years", "colors", "colors_en", "roll_size",
             "is_active", "order",
         )
         labels = {
@@ -53,8 +53,6 @@ class ProductForm(StyledFormMixin, forms.ModelForm):
             "name_en": "نام محصول (English)",
             "description_en": "توضیحات (English)",
             "face_material_en": "جنس رویه (English)",
-            "colors_en": "رنگ‌ها (English)",
-            "roll_size": "ابعاد رول (متر)",
         }
         widgets = {
             "description": forms.Textarea(attrs={"rows": 4}),
@@ -64,10 +62,6 @@ class ProductForm(StyledFormMixin, forms.ModelForm):
             "liner_gsm": forms.NumberInput(attrs={"placeholder": "مثلاً ۱۴۰", "min": 0}),
             "face_value": forms.NumberInput(attrs={"min": 0}),
             "order": forms.NumberInput(attrs={"min": 0}),
-            "durability_years": forms.NumberInput(attrs={"min": 0, "placeholder": "مثلاً ۷"}),
-            "colors": forms.TextInput(attrs={"placeholder": "سفید - قرمز - سبز"}),
-            "colors_en": forms.TextInput(attrs={"dir": "ltr", "placeholder": "White - Red - Green"}),
-            "roll_size": forms.TextInput(attrs={"dir": "ltr", "placeholder": "1.22 × 45.7"}),
             "width_107": forms.TextInput(attrs={"dir": "ltr"}),
             "width_127": forms.TextInput(attrs={"dir": "ltr"}),
             "width_152": forms.TextInput(attrs={"dir": "ltr"}),
@@ -80,6 +74,58 @@ class ProductForm(StyledFormMixin, forms.ModelForm):
         self.fields["subcategory"].queryset = Subcategory.objects.select_related("category")
         self.fields["subcategory"].empty_label = "بدون زیردسته"
         self.fields["adhesive"].choices = [("", "—")] + list(Product.Adhesive.choices)
+
+
+class VanliteForm(StyledFormMixin, forms.ModelForm):
+    """یک ردیف ونلایت داخل فرم محصول؛ همان داده‌ای که سایت در جدول ونلایت نشان می‌دهد."""
+
+    class Meta:
+        model = Vanlite
+        fields = (
+            "name", "type", "product_code", "roll_size", "durability_years", "colors",
+            "name_en", "type_en", "product_code_en", "roll_size_en", "durability_years_en", "colors_en",
+            "order", "is_active",
+        )
+        labels = {
+            "name": "نام",
+            "type": "نوع (EGP / HIP)",
+            "product_code": "کد محصول",
+            "roll_size": "ابعاد رول (متر)",
+            "durability_years": "دوام (سال)",
+            "colors": "رنگ‌ها",
+            "name_en": "Name (English)",
+            "type_en": "Type (English)",
+            "product_code_en": "Product code (English)",
+            "roll_size_en": "Roll size (English)",
+            "durability_years_en": "Durability, years (English)",
+            "colors_en": "Colors (English)",
+            "order": "ترتیب",
+            "is_active": "فعال (در سایت نمایش داده شود)",
+        }
+        widgets = {
+            "product_code": forms.TextInput(attrs={"dir": "ltr"}),
+            "roll_size": forms.TextInput(attrs={"dir": "ltr", "placeholder": "1.22 × 45.7"}),
+            "durability_years": forms.NumberInput(attrs={"min": 0, "placeholder": "مثلاً ۷"}),
+            "colors": forms.TextInput(attrs={"placeholder": "سفید - قرمز - سبز"}),
+            "name_en": forms.TextInput(attrs={"dir": "ltr"}),
+            "type_en": forms.TextInput(attrs={"dir": "ltr"}),
+            "product_code_en": forms.TextInput(attrs={"dir": "ltr"}),
+            "roll_size_en": forms.TextInput(attrs={"dir": "ltr"}),
+            "durability_years_en": forms.NumberInput(attrs={"min": 0}),
+            "colors_en": forms.TextInput(attrs={"dir": "ltr", "placeholder": "White - Red - Green"}),
+            "order": forms.NumberInput(attrs={"min": 0}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # نام خالی در ذخیره با نام محصول پر می‌شود.
+        self.fields["name"].required = False
+
+
+def vanlite_formset_class(can_delete):
+    return inlineformset_factory(
+        Product, Vanlite, form=VanliteForm, extra=0, can_delete=can_delete,
+    )
 
 
 class CategoryForm(StyledFormMixin, forms.ModelForm):
@@ -122,6 +168,17 @@ class SubcategoryForm(StyledFormMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["category"].label_from_instance = lambda c: f"{c.name} — {c.title}"
         self.fields["category"].empty_label = "انتخاب کنید"
+        self.moved_products = 0
+        if self.instance.pk:
+            self.fields["category"].help_text = (
+                "اگر دسته‌بندی را عوض کنید، محصولات این زیردسته هم به دستهٔ جدید منتقل می‌شوند."
+            )
+
+    def save(self, commit=True):
+        # تعداد محصولاتی که همراه زیردسته جابه‌جا می‌شوند (برای پیام موفقیت)
+        if commit and self.instance.pk and "category" in self.changed_data:
+            self.moved_products = self.instance.products.count()
+        return super().save(commit=commit)
 
 
 class CatalogForm(StyledFormMixin, forms.ModelForm):
