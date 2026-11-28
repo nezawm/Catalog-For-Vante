@@ -83,8 +83,6 @@ main.container { flex: 1; }
     transition: background .2s, color .2s;
 }
 .site-nav a:hover { background: var(--orange); color: #fff; }
-.site-nav .lang-switch { background: var(--ink); color: #fff; }
-.site-nav .lang-switch:hover { background: var(--orange); }
 
 /* بنر اصلی */
 .hero {
@@ -211,55 +209,8 @@ main.container { flex: 1; }
     border-top: 5px solid var(--orange);
 }
 
-/* صفحهٔ انتخاب زبان */
-.lang-page {
-    position: relative;
-    overflow: hidden;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 24px;
-    padding: 24px;
-    text-align: center;
-    background: #fff;
-}
-.lang-page::before, .lang-page::after { content: ""; position: absolute; z-index: 0; pointer-events: none; }
-.lang-page::before {
-    top: 0; left: 0; width: min(46vw, 520px); height: min(46vw, 520px);
-    background: var(--orange);
-    clip-path: polygon(0 0, 100% 0, 0 100%);
-    opacity: .95;
-}
-.lang-page::after {
-    bottom: 0; right: 0; width: min(40vw, 440px); height: min(40vw, 440px);
-    background: var(--ink);
-    clip-path: polygon(100% 0, 100% 100%, 0 100%);
-}
-.lang-page > * { position: relative; z-index: 1; }
-.lang-page .logo { font-size: 48px; }
-.lang-hint { color: var(--ink); }
-.lang-hint p { margin: 0; }
-.lang-hint-fa { font-size: 24px; font-weight: 800; }
-.lang-hint-en { font-size: 20px; color: var(--muted); }
-.lang-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; }
-.lang-btn {
-    display: block;
-    min-width: 200px;
-    padding: 18px 32px;
-    background: var(--orange);
-    color: #fff;
-    font-size: 22px;
-    font-weight: 800;
-    text-decoration: none;
-    border-radius: 999px;
-    transition: background .2s;
-}
-.lang-btn:hover { background: var(--ink); }
-
-main a:not(.card):not(.btn):not(.lang-btn):not(.btn-back) { color: var(--orange-700); font-weight: 700; text-decoration: none; border-bottom: 2px solid var(--orange); }
-main a:not(.card):not(.btn):not(.lang-btn):not(.btn-back):hover { color: var(--ink); }
+main a:not(.card):not(.btn):not(.btn-back) { color: var(--orange-700); font-weight: 700; text-decoration: none; border-bottom: 2px solid var(--orange); }
+main a:not(.card):not(.btn):not(.btn-back):hover { color: var(--ink); }
 
 /* اشکال تزئینی پس‌زمینه */
 body::before, body::after { content: ""; position: absolute; z-index: -1; pointer-events: none; }
@@ -275,7 +226,6 @@ body::after {
     background: repeating-linear-gradient(-45deg, rgba(240, 71, 5, .09) 0 14px, transparent 14px 28px);
     clip-path: polygon(100% 0, 100% 100%, 0 100%);
 }
-.lang-page { background: transparent; }
 
 /* دکمهٔ بازگشت (قابل استفاده در همهٔ صفحه‌ها: {% include "Core/_back_button.html" with fallback=آدرس %}) */
 .back-row { margin: 28px 0 8px; }
@@ -306,7 +256,6 @@ a:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
     .header-logo img { height: 38px; }
     .hero { --hero-py: 36px; --hero-px: 24px; border-radius: 26px; }
     .hero h1 { font-size: 30px; }
-    .lang-page::before, .lang-page::after { opacity: .5; }
 }
 
 /* لوگوی ونته در هدر (بالا سمت راست) */
@@ -316,9 +265,8 @@ html[dir="ltr"] .site-header .site-nav { direction: ltr; }
 .header-logo { display: block; line-height: 0; flex-shrink: 0; }
 .header-logo img { height: 46px; width: auto; border-radius: 8px; display: block; }
 
-/* موشن لوگو (صفحهٔ انتخاب زبان و بنر صفحهٔ اصلی) — مختصات بر اساس عکس جدید ۱۴۶۱×۱۰۷۷ */
+/* موشن لوگو (بنر صفحهٔ اصلی) — مختصات بر اساس عکس جدید ۱۴۶۱×۱۰۷۷ */
 .vm { display: block; height: auto; overflow: visible; }
-.lang-page .vm { width: min(260px, 70vw); filter: drop-shadow(0 12px 24px rgba(240, 71, 5, .28)); }
 .vm-tile { transform-box: fill-box; transform-origin: center; animation: vm-pop .7s cubic-bezier(.2, .9, .3, 1.2) both; }
 .vm-wipe { transform-box: fill-box; transform-origin: left center; animation: vm-wipe 1s cubic-bezier(.6, .1, .2, 1) .45s both; }
 .vm-bar { transform-box: fill-box; opacity: 0; animation: vm-bar .5s cubic-bezier(.2, .8, .2, 1) both; }
@@ -327,7 +275,6 @@ html[dir="ltr"] .site-header .site-nav { direction: ltr; }
 .vm-l { transform-box: fill-box; transform-origin: center bottom; opacity: 0; animation: vm-rise .5s cubic-bezier(.2, .8, .2, 1) calc(1.6s + var(--i) * .09s) both; }
 .vm-shine { transform: skewX(-18deg); animation: vm-shine .9s ease-in-out 2.4s both; mix-blend-mode: soft-light; }
 .vm--loop .vm-shine { animation: vm-shine-loop 6s ease-in-out 2.4s infinite; }
-.lang-page .lang-hint, .lang-page .lang-buttons { animation: vm-fade .7s ease-out 2.1s both; }
 
 @keyframes vm-pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 @keyframes vm-wipe { from { transform: scaleX(0); } to { transform: scaleX(1); } }
@@ -378,12 +325,6 @@ html[dir="ltr"] .site-header .site-nav { direction: ltr; }
 .motion-text li:nth-child(1) { --i: 0; }
 .motion-text li:nth-child(2) { --i: 1; }
 
-/* موشن‌تکست صفحهٔ انتخاب زبان: بالا سمت راست، برچسب نارنجی روی زمینهٔ سفید */
-.lang-page .lang-motion { position: absolute; top: 28px; right: 28px; z-index: 2; align-items: flex-end; margin: 0; }
-.lang-page .motion-text li { background: var(--orange); color: #fff; animation-name: mt-pill-rtl; }
-.lang-page .motion-text li::after { background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .35), transparent); }
-@media (max-width: 640px) { .lang-page .lang-motion { top: 12px; right: 12px; } }
-
 @keyframes mt-pill { from { opacity: 0; transform: translateX(-36px); } to { opacity: 1; transform: translateX(0); } }
 html[dir="rtl"] .motion-text li { animation-name: mt-pill-rtl; }
 @keyframes mt-pill-rtl { from { opacity: 0; transform: translateX(36px); } to { opacity: 1; transform: translateX(0); } }
@@ -398,7 +339,7 @@ html[dir="rtl"] .motion-text li { animation-name: mt-pill-rtl; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .vm-tile, .vm-wipe, .vm-bar, .vm-l, .vm-shine, .lang-page .lang-hint, .lang-page .lang-buttons,
+    .vm-tile, .vm-wipe, .vm-bar, .vm-l, .vm-shine,
     .motion-text li, .motion-text .mt-word { animation: none; opacity: 1; transform: none; }
     .vm-shine, .motion-text li::after { opacity: 0; animation: none; }
 }
@@ -534,26 +475,133 @@ html[dir="ltr"] .menu-list { direction: ltr; }
     .site-header .site-nav { display: contents; }
     .site-header .site-nav a { padding: 4px 14px; font-size: 13px; line-height: 1.8; text-align: center; white-space: nowrap; }
     .site-header .container::after { content: ""; order: 3; flex: 0 0 100%; height: 0; }   /* شکستن ردیف */
-    .site-header .site-nav .lang-switch { order: 1; }
+    .site-header .lang-toggle { order: 1; }
     .header-brand { order: 2; }
-    .site-header .site-nav a:not(.lang-switch) { order: 4; flex: 1 1 0; min-width: 0; }
+    .site-header .site-nav a { order: 4; flex: 1 1 0; min-width: 0; }
     /* ترتیب ردیف دوم: در فارسی «خانه» راست‌ترین است، در انگلیسی چپ‌ترین */
     html[dir="rtl"] .site-header .site-nav a:first-child { order: 5; }
     html[dir="ltr"] .site-header .site-nav a.nav-download { order: 5; }
     .header-logo img { height: 32px; }
     .menu-toggle { width: 36px; height: 36px; }
 
-    /* ---- صفحهٔ انتخاب زبان: لوگو ← متن ← انتخاب زبان، با فاصله‌ی مناسب ---- */
-    .lang-page { gap: 0; padding: 32px 20px; }
-    .lang-page .vm { order: 1; width: min(210px, 58vw); }
-    .lang-page .lang-motion {
-        order: 2; position: static; top: auto; right: auto;
-        align-items: center; margin: 28px 0 0; gap: 8px;
-    }
-    .lang-page .lang-motion li { font-size: 14px; padding: 0 16px; }
-    .lang-page .lang-hint { order: 3; margin-top: 36px; }
-    .lang-page .lang-buttons { order: 4; margin-top: 16px; gap: 12px; }
-    .lang-hint-fa { font-size: 20px; }
-    .lang-hint-en { font-size: 16px; }
-    .lang-btn { min-width: 128px; padding: 12px 18px; font-size: 18px; }
+}
+/* ================= انتخاب زبان (بالا سمت چپ): EN | FA با پرچم، هم‌اندازهٔ دکمه‌های منو ================= */
+.lang-toggle { display: inline-flex; direction: ltr; flex-shrink: 0; background: var(--paper); border-radius: 999px; }
+.lang-toggle a {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 16px 6px 12px;
+    color: var(--ink);
+    font-weight: 600;
+    line-height: 1.9;
+    text-decoration: none;
+    border-radius: 999px;
+    transition: background .2s, color .2s;
+}
+.lang-toggle a:hover { background: var(--orange); color: #fff; }
+.lang-toggle a[aria-current="true"] { background: var(--ink); color: #fff; cursor: default; }
+.lang-flag { width: 24px; height: 16px; border-radius: 3px; display: block; box-shadow: 0 0 0 1px rgba(0, 0, 0, .18); flex-shrink: 0; object-fit: cover; }
+.site-header .container > .site-nav { margin-right: auto; margin-left: 14px; }   /* دسکتاپ: دکمهٔ زبان چپ‌ترین، بعد منو، لوگو راست */
+
+/* ================= دسته‌بندی محصولات در صفحهٔ اصلی (آکاردئون) ================= */
+.catalog-inline { margin-top: 8px; scroll-margin-top: 16px; }
+.catalog-inline[hidden] { display: none; }
+.catalog-inline.is-revealed { animation: catalog-in .55s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes catalog-in { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+.cat-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
+.cat-card {
+    flex: 0 0 calc((100% - 40px) / 3);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 0 0 14px;
+    font: inherit;
+    text-align: center;
+    color: var(--ink);
+    background: var(--paper);
+    border: 0;
+    border-bottom: 5px solid var(--orange);
+    border-radius: 18px 18px 6px 6px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform .2s, box-shadow .2s, background .2s;
+}
+.cat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(28, 25, 23, .12); }
+.cat-card:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+.cat-card.is-active { background: var(--ink); color: #fff; box-shadow: 0 10px 24px rgba(28, 25, 23, .22); }
+/* جای عکس دسته (نسبت ۴:۳): زمینهٔ نارنجی با لوگوی VTE در وسط. بعداً عکس دسته را به‌جای <img class="cat-card-ph"> بگذارید (کلاس cat-card-img). */
+.cat-card-media { display: flex; align-items: center; justify-content: center; aspect-ratio: 4 / 3; width: 100%; overflow: hidden; background: var(--orange); }
+.cat-card-media img.cat-card-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cat-card-ph { width: 58%; height: auto; display: block; }
+.cat-card-name { margin-top: 12px; font-size: 20px; font-weight: 800; color: var(--orange-700); line-height: 1.5; direction: ltr; }
+.cat-card.is-active .cat-card-name { color: var(--orange); }
+.cat-card-title { padding: 0 12px; font-weight: 700; font-size: 15px; line-height: 1.6; }
+.cat-panels { margin-top: 28px; }
+.cat-panel { scroll-margin-top: 16px; }
+.cat-panel.is-revealed { animation: catalog-in .45s cubic-bezier(.2, .8, .2, 1) both; }
+.cat-panel-desc { color: var(--muted); margin: 0 0 6px; }
+@media (max-width: 800px) { .cat-card { flex-basis: calc((100% - 20px) / 2); } }
+@media (max-width: 640px) {
+    .cat-grid { gap: 12px; }
+    .cat-card { flex-basis: calc((100% - 12px) / 2); }
+    .cat-card-name { font-size: 17px; margin-top: 10px; }
+    .cat-card-title { font-size: 13px; }
+}
+.catalog-group-title { margin: 20px 0 12px; font-size: 18px; font-weight: 800; color: var(--ink); }
+.catalog-group-title a { color: inherit; text-decoration: none; border-bottom: 2px solid var(--orange); }
+.catalog-group-title a:hover { color: var(--orange-700); }
+.catalog-empty { color: var(--muted); }
+
+/* ================= فوتر: اینستاگرام، تلفن و ... ================= */
+.site-footer .container { display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
+.footer-inner { direction: ltr; }               /* لوگو همیشه پایین سمت چپ (فیزیکی) */
+.footer-logo { align-self: flex-start; display: block; line-height: 0; }
+.footer-logo img { height: 44px; width: auto; border-radius: 8px; display: block; }
+html[dir="rtl"] .footer-links { direction: rtl; }
+.footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.footer-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 18px 6px 8px;
+    color: #fff;
+    font-weight: 700;
+    background: rgba(255, 255, 255, .08);
+    border-radius: 999px;
+}
+.footer-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    border-radius: 50%;
+    background: var(--orange);
+    color: #fff;
+    flex-shrink: 0;
+    transition: background .2s, color .2s;
+}
+.footer-icon svg { display: block; width: 18px; height: 18px; flex: 0 0 18px; }
+/* عنوان بالا، شماره‌ها زیرش و کنار هم (حتی اگر قالب قدیمی بدون .footer-numbers باشد) */
+.footer-item-text { display: flex; flex-flow: row wrap; align-items: center; column-gap: 10px; line-height: 1.5; text-align: start; }
+.footer-item-text small { flex: 0 0 100%; font-size: 12px; font-weight: 600; color: #d6d3d1; }
+.footer-item--phone { padding-inline-end: 22px; }
+.footer-links .ltr { direction: ltr; unicode-bidi: isolate; }
+/* چند شماره زیر یک عنوان: کنار هم در یک سطر، با خط جداکننده (ارتفاع کارت‌ها یکسان می‌ماند) */
+.footer-numbers { display: flex; flex-wrap: nowrap; align-items: center; gap: 10px; white-space: nowrap; }
+/* خط بین دو شماره: روی «شمارهٔ دوم» و سمتی که به شمارهٔ اول نزدیک است (راست‌به‌چپ و چپ‌به‌راست) */
+html[dir="rtl"] .footer-item-text .ltr + .ltr { border-right: 1px solid rgba(255, 255, 255, .35); padding-right: 10px; }
+html[dir="ltr"] .footer-item-text .ltr + .ltr { border-left: 1px solid rgba(255, 255, 255, .35); padding-left: 10px; }
+@media (max-width: 640px) {
+    .footer-links { gap: 8px; }
+    .footer-item { padding: 5px 14px 5px 6px; font-size: 14px; }
+    .footer-phones { flex-direction: column; align-items: stretch; width: 100%; max-width: 340px; }
+    .footer-phones .footer-item { width: 100%; }
+    .footer-icon { width: 30px; height: 30px; flex-basis: 30px; }
+    .lang-toggle a { padding: 4px 12px 4px 9px; font-size: 13px; line-height: 1.8; gap: 6px; }
+    .lang-flag { width: 20px; height: 14px; }
+    .lang-flag { width: 22px; height: 15px; }
 }

@@ -3,18 +3,22 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="format-detection" content="telephone=no, address=no, email=no">
     <title>{% block title %}{% t "site_title" %}{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'Core/css/theme.css' %}">
+    <link rel="stylesheet" href="{% static 'Core/css/theme.css' %}?v=8">
     {% block extra_head %}{% endblock %}
 </head>
 <body>
     <header class="site-header">
         <div class="container">
+            <div class="lang-toggle" role="group" aria-label="{% t 'language' %}">
+                <a href="{% language_url 'en' %}" hreflang="en" lang="en"{% if LANGUAGE_CODE == 'en' %} aria-current="true"{% endif %}><img class="lang-flag" src="{% static 'Core/img/flag-gb.svg' %}" alt="" width="24" height="16">EN</a>
+                <a href="{% language_url 'fa' %}" hreflang="fa" lang="fa"{% if LANGUAGE_CODE != 'en' %} aria-current="true"{% endif %}><img class="lang-flag" src="{% static 'Core/img/flag-ir.svg' %}" alt="" width="24" height="16">FA</a>
+            </div>
             <nav class="site-nav" aria-label="Main">
                 <a href="{% url 'Core:home' %}">{% t "nav_home" %}</a>
                 {% catalog_file as catalog %}
                 {% if catalog %}<a class="nav-download" href="{% url 'catalog_download' catalog.language %}" download>{% t "download_catalog" %}</a>{% endif %}
-                <a class="lang-switch" href="{% other_language_url %}">{% t "switch_language" %}</a>
             </nav>
             <div class="header-brand">
                 <div class="site-menu">
@@ -23,7 +27,7 @@
                     </button>
                     <div class="menu-backdrop"></div>
                     <div class="menu-list" id="site-menu-list">
-                        <a href="{% url 'Category:list' %}">{% t "menu_catalog" %}</a>
+                        <a href="{% url 'Core:home' %}#catalog">{% t "menu_catalog" %}</a>
                         <a href="{% url 'panel:login' %}">{% t "nav_panel" %}</a>
                     </div>
                 </div>
@@ -37,11 +41,12 @@
     </main>
 
     <footer class="site-footer">
-        <div class="container">
-            {% block footer %}{% t "footer" %}{% endblock %}
-            {% if contact_phone %}<div class="footer-contact">{% t "contact_label" %} <a href="tel:{{ contact_phone }}">{{ contact_phone }}</a></div>{% endif %}
+        <div class="container footer-inner">
+            {% include "Core/_footer_links.html" %}
+            <a class="footer-logo" href="{% url 'Core:home' %}" aria-label="Vante"><img src="{% static 'Core/img/vante-logo.svg' %}" alt="Vante" height="44"></a>
         </div>
     </footer>
-    <script src="{% static 'Core/js/menu.js' %}"></script>
+    <script src="{% static 'Core/js/menu.js' %}?v=7"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>
