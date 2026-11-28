@@ -34,6 +34,12 @@ def other_language_url(context):
     return translate_url(request.get_full_path(), target)
 
 
+@register.simple_tag(takes_context=True)
+def language_url(context, lang):
+    """آدرس همین صفحه به زبان دلخواه: {% language_url "en" %}"""
+    return translate_url(context["request"].get_full_path(), lang)
+
+
 @register.simple_tag
 def motion_words(key, lang=None):
     """متن ترجمه‌شده را کلمه‌به‌کلمه در span می‌گذارد تا کلمه‌ها یکی‌یکی انیمیت شوند

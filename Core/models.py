@@ -106,7 +106,6 @@ class QRCode(BaseModel):
     چون خودِ QR عوض نمی‌شود، می‌شود مقصد را بعد از چاپ هم تغییر داد."""
 
     TARGETS = [
-        ("/", "صفحهٔ انتخاب زبان"),
         ("/fa/", "سایت فارسی"),
         ("/en/", "سایت انگلیسی (English)"),
         ("/fa/categories/", "کاتالوگ آنلاین فارسی"),
@@ -117,7 +116,7 @@ class QRCode(BaseModel):
 
     name = models.CharField("نام QR", max_length=80, help_text="مثلاً «بنر نمایشگاه» یا «کارت ویزیت»")
     code = models.CharField("کد", max_length=12, unique=True, default=make_qr_code, editable=False)
-    target = models.CharField("مقصد", max_length=60, choices=TARGETS, default="/")
+    target = models.CharField("مقصد", max_length=60, choices=TARGETS, default="/fa/")
 
     class Meta(BaseModel.Meta):
         verbose_name = "کد QR"

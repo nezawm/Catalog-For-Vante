@@ -5,6 +5,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 
 from Category.models import Category, Subcategory
+from Core.models import QRCode
 from Product.models import Product
 
 
@@ -196,3 +197,54 @@ class CatalogFileTransactionTests(CatalogTestBase):
         with self.captureOnCommitCallbacks(execute=True):
             catalog.delete()
         self.assertFalse(storage.exists(name))
+
+
+class HomeAndLanguageTests(TestCase):
+    """صفحهٔ انتخاب زبان حذف شده؛ تغییر زبان از هدر، محصولات در صفحهٔ اصلی و فوتر تماس."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.cat = Category.objects.create(name="Vancal", title="وانکال")
+        cls.sub = Subcategory.objects.create(category=cls.cat, name="PET")
+        cls.in_sub = Product.objects.create(category=cls.cat, subcategory=cls.sub, name="سفید براق")
+        cls.loose = Product.objects.create(category=cls.cat, name="بدون زیردسته")
+        cls.hidden = Product.objects.create(category=cls.cat, name="غیرفعال", is_active=False)
+
+    def test_root_goes_straight_to_persian_home(self):
+        response = self.client.get("/")
+        self.assertRedirects(response, "/fa/", fetch_redirect_response=False)
+
+    def test_header_language_toggle_keeps_page(self):
+        body = self.client.get("/fa/").content.decode()
+        self.assertIn('href="/en/"', body)
+        self.assertIn("flag-ir.svg", body)
+        self.assertIn("flag-gb.svg", body)
+        en = self.client.get("/en/categories/").content.decode()
+        self.assertIn('href="/fa/categories/"', en)
+        self.assertIn("lang-toggle", en)
+
+    def test_products_are_listed_inline_on_home(self):
+        body = self.client.get("/fa/").content.decode()
+        self.assertIn('id="catalog"', body)
+        self.assertIn('data-reveal="catalog"', body)
+        self.assertIn('class="cat-card"', body)  # هر دسته یک دکمه است
+        self.assertIn(f'id="cat-panel-{self.cat.pk}"', body)  # پنل زیردسته‌ها (پیش‌فرض hidden)
+        self.assertIn(self.in_sub.get_absolute_url(), body)
+        self.assertIn(self.loose.get_absolute_url(), body)
+        self.assertNotIn(self.hidden.get_absolute_url(), body)
+
+    def test_footer_has_instagram_and_phone(self):
+        body = self.client.get("/fa/").content.decode()
+        self.assertIn("vanteholding.ir", body)
+        for number in ("011-3514", "0912 968 7747", "021-3641-9873", "021-3641-9881", "0933 249 7732"):
+            self.assertIn(number, body)
+        self.assertIn("دفتر مرکزی", body)
+        self.assertIn("Sales expert", self.client.get("/en/").content.decode())
+        footer = body.split('<footer')[1]
+        self.assertNotIn("<a ", footer.split('<a class="footer-logo"')[0])  # آدرس و تماس لینک نیستند
+        self.assertIn("footer-logo", body)
+
+    def test_new_qr_defaults_to_persian_home(self):
+        qr = QRCode.objects.create(name="x")
+        self.assertEqual(qr.target, "/fa/")
+        self.assertRedirects(self.client.get(f"/q/{qr.code}/"), "/fa/", fetch_redirect_response=False)
