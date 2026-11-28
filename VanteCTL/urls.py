@@ -12,6 +12,7 @@ Class-based views
     2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
 Including another URLconf
     1. Import the include() function: from django.urls import include, path
+from django.views.generic import RedirectView
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
@@ -20,8 +21,9 @@ from django.conf.urls.i18n import i18n_patterns
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+from django.views.generic import RedirectView
 
-from Core.views import LanguageSelectView, admin_slugify, catalog_download, qr_scan
+from Core.views import admin_slugify, catalog_download, qr_scan
 
 urlpatterns = [
     path("admin/slugify/", admin_slugify, name="admin_slugify"),
@@ -29,7 +31,8 @@ urlpatterns = [
     path("panel/", include("Panel.urls")),
     path("catalog/<slug:lang>/", catalog_download, name="catalog_download"),
     path("q/<slug:code>/", qr_scan, name="qr_scan"),
-    path("", LanguageSelectView.as_view(), name="language_select"),
+    # صفحهٔ انتخاب زبان حذف شد؛ ورود به ریشه مستقیم به صفحهٔ اصلیِ فارسی می‌رود (تغییر زبان از هدر).
+    path("", RedirectView.as_view(url="/fa/", query_string=False, permanent=False), name="root"),
 ]
 
 urlpatterns += i18n_patterns(

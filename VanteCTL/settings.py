@@ -222,5 +222,14 @@ MEDIA_ROOT = BASE_DIR / "media"
 # (فقط وقتی پروکسی شما این هدر را خودش مقداردهی می‌کند، وگرنه قابل جعل است).
 LOG_TRUST_PROXY_HEADER = env_bool("LOG_TRUST_PROXY_HEADER", False)
 
-# شماره تماس نمایش‌داده‌شده در فوتر (از متغیر محیطی CONTACT_PHONE)
-CONTACT_PHONE = os.environ.get("CONTACT_PHONE", "011-3514")
+# شماره‌های تماس فوتر: (کلید عنوان در Core/translations.py، لیست شماره‌ها؛ چند شماره زیر یک عنوان). برای تغییر یا افزودن، همین‌جا ویرایش کنید
+# (برای عنوان جدید، کلید phone_<کلید> را به هر دو زبان در translations.py اضافه کنید).
+CONTACT_PHONES = [
+    ("head_office", ["011-3514"]),
+    ("sales_dept", ["0912 968 7747"]),
+    ("sales_expert", ["0933 249 7732"]),
+    ("consult", ["021-3641-9881", "021-3641-9873"]),
+]
+# راه‌های ارتباطی فوتر؛ هر کدام خالی باشد نمایش داده نمی‌شود.
+CONTACT_INSTAGRAM = os.environ.get("CONTACT_INSTAGRAM", "vanteholding.ir").strip().lstrip("@")  # فقط نام صفحه، بدون @ و آدرس
+CONTACT_WEBSITE = os.environ.get("CONTACT_WEBSITE", "https://vanteholding.ir").strip()  # آدرس کامل https://...

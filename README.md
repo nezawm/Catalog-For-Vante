@@ -30,7 +30,8 @@ python manage.py runserver
 | `DJANGO_SSL_REDIRECT` | پیش‌فرض `True` در production؛ ریدایرکت HTTP به HTTPS. |
 | `DJANGO_HSTS_SECONDS` | پیش‌فرض `0` (خاموش)؛ بعد از تست HTTPS مثلاً `31536000`. |
 | `LOG_TRUST_PROXY_HEADER` | اختیاری؛ پشت پروکسی‌ای که `X-Forwarded-For` را خودش می‌گذارد `True` کنید. |
-| `CONTACT_PHONE` | اختیاری؛ شمارهٔ فوتر سایت. |
+| `CONTACT_INSTAGRAM` | نام صفحهٔ اینستاگرام فوتر (پیش‌فرض `vanteholding.ir`)، بدون `@` و آدرس. |
+| `CONTACT_WEBSITE` | آدرس وب‌سایت فوتر، کامل با `https://` (پیش‌فرض `https://vanteholding.ir`). |
 
 ساخت کلید جدید:
 
@@ -76,3 +77,5 @@ python -c "from django.core.management.utils import get_random_secret_key as g; 
 ```bash
 python manage.py test
 ```
+
+> شماره‌های تماس فوتر (عنوان + شماره) در `VanteCTL/settings.py` در لیست `CONTACT_PHONES` ویرایش می‌شوند.
